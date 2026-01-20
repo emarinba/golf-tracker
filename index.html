@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#16a34a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <title>Golf Tracker</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Estilos -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/views.css">
+</head>
+<body>
+
+    <!-- PANTALLA DE AUTENTICACIÓN -->
+    <div id="auth-screen" class="auth-screen">
+        <div class="auth-container">
+            <!-- LOGIN -->
+            <div id="login-view" class="auth-card">
+                <div class="auth-header">
+                    <div class="auth-logo">⛳</div>
+                    <h1 class="auth-title">Golf Tracker</h1>
+                    <p class="auth-subtitle">Tu gestor personal de partidas</p>
+                </div>
+
+                <form id="login-form" class="auth-form" onsubmit="AUTH.handleLogin(event)">
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" class="form-input" placeholder="tu@email.com" required autocomplete="email">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="login-password">Contraseña</label>
+                        <input type="password" id="login-password" class="form-input" placeholder="••••••••" required autocomplete="current-password">
+                    </div>
+
+                    <div id="login-error" class="error-message hidden"></div>
+
+                    <button type="submit" class="btn-primary btn-large" id="login-btn">
+                        Iniciar Sesión
+                    </button>
+                </form>
+
+                <div class="auth-footer">
+                    <p class="auth-switch-text">
+                        ¿No tienes cuenta? 
+                        <a href="#" onclick="AUTH.showRegister(event)" class="auth-link">Regístrate</a>
+                    </p>
+                </div>
+            </div>
+
+            <!-- REGISTRO -->
+            <div id="register-view" class="auth-card hidden">
+                <div class="auth-header">
+                    <div class="auth-logo">⛳</div>
+                    <h1 class="auth-title">Crear cuenta</h1>
+                    <p class="auth-subtitle">Empieza a llevar el control</p>
+                </div>
+
+                <form id="register-form" class="auth-form" onsubmit="AUTH.handleRegister(event)">
+                    <div class="form-group">
+                        <label for="register-email">Email</label>
+                        <input type="email" id="register-email" class="form-input" placeholder="tu@email.com" required autocomplete="email">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="register-password">Contraseña</label>
+                        <input type="password" id="register-password" class="form-input" placeholder="Mínimo 6 caracteres" required autocomplete="new-password" minlength="6">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="register-password-confirm">Confirmar Contraseña</label>
+                        <input type="password" id="register-password-confirm" class="form-input" placeholder="Repite la contraseña" required autocomplete="new-password" minlength="6">
+                    </div>
+
+                    <div id="register-error" class="error-message hidden"></div>
+                    <div id="register-success" class="success-message hidden"></div>
+
+                    <button type="submit" class="btn-primary btn-large" id="register-btn">
+                        Crear Cuenta
+                    </button>
+                </form>
+
+                <div class="auth-footer">
+                    <p class="auth-switch-text">
+                        ¿Ya tienes cuenta? 
+                        <a href="#" onclick="AUTH.showLogin(event)" class="auth-link">Inicia sesión</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- APLICACIÓN PRINCIPAL -->
+    <div id="app-screen" class="app-screen hidden">
+        
+        <!-- HEADER -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="app-logo">⛳</div>
+                    <h1 class="app-title">Golf Tracker</h1>
+                    
+                    <!-- Navegación Desktop -->
+                    <nav class="header-nav">
+                        <button class="header-nav-item active" data-view="dashboard" onclick="GolfApp.navigate('dashboard')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                            <span>Partidas</span>
+                        </button>
+                        <button class="header-nav-item" data-view="courses" onclick="GolfApp.navigate('courses')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 21v-4m0 0V5a2 2 0 0 1 2-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 0 0-2 2zm9-13.5V9"></path>
+                            </svg>
+                            <span>Campos</span>
+                        </button>
+                        <button class="header-nav-item" data-view="game" onclick="GolfApp.navigate('game')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            <span>Nueva Partida</span>
+                        </button>
+                    </nav>
+                </div>
+                <div class="header-right">
+                    <div class="user-info">
+                        <span class="user-email" id="user-email"></span>
+                        <button class="btn-icon" onclick="GolfApp.logout()" title="Cerrar sesión">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16 17 21 12 16 7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <main class="app-main">
+            <div class="main-content">
+                
+                <!-- VISTA: DASHBOARD -->
+                <div id="view-dashboard" class="view-container active">
+                    <div class="view-header">
+                        <h2 class="view-title">Mis Partidas</h2>
+                    </div>
+                    
+                    <!-- Filtros -->
+                    <div class="filters-section">
+                        <div class="filters-row">
+                            <div class="filter-group">
+                                <label>Campo</label>
+                                <select id="filter-course" class="filter-input" onchange="DashboardView.applyFilters()">
+                                    <option value="">Todos los campos</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label>Desde</label>
+                                <input type="date" id="filter-date-from" class="filter-input" onchange="DashboardView.applyFilters()">
+                            </div>
+                            <div class="filter-group">
+                                <label>Hasta</label>
+                                <input type="date" id="filter-date-to" class="filter-input" onchange="DashboardView.applyFilters()">
+                            </div>
+                            <div class="filter-actions">
+                                <button class="btn-secondary btn-sm" onclick="DashboardView.clearFilters()">
+                                    Limpiar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="games-grid" id="games-list"></div>
+
+                    <div id="empty-state" class="empty-state hidden">
+                        <div class="empty-icon">⛳</div>
+                        <h3 class="empty-title">Aún no tienes partidas</h3>
+                        <p class="empty-text">Registra tu primera partida para empezar</p>
+                        <button class="btn-primary" onclick="GolfApp.navigate('game')">Nueva Partida</button>
+                    </div>
+                    
+                    <div id="no-results-state" class="empty-state hidden">
+                        <div class="empty-icon">🔍</div>
+                        <h3 class="empty-title">No hay resultados</h3>
+                        <p class="empty-text">No se encontraron partidas con estos filtros</p>
+                        <button class="btn-secondary" onclick="DashboardView.clearFilters()">Limpiar filtros</button>
+                    </div>
+                </div>
+
+                <!-- VISTA: CAMPOS -->
+                <div id="view-courses" class="view-container">
+                    <div class="view-header">
+                        <h2 class="view-title">Campos de Golf</h2>
+                        <button class="btn-primary btn-sm" onclick="CoursesView.openCreateModal()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            Nuevo Campo
+                        </button>
+                    </div>
+                    
+                    <div class="courses-grid" id="courses-list"></div>
+
+                    <div id="courses-empty" class="empty-state hidden">
+                        <div class="empty-icon">🏌️</div>
+                        <h3 class="empty-title">No hay campos registrados</h3>
+                        <p class="empty-text">Añade tu primer campo</p>
+                        <button class="btn-primary" onclick="CoursesView.openCreateModal()">Crear Campo</button>
+                    </div>
+                </div>
+
+                <!-- VISTA: NUEVA PARTIDA -->
+                <div id="view-game" class="view-container">
+                    <div class="view-header">
+                        <button class="btn-back" onclick="GolfApp.navigate('dashboard')">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="19" y1="12" x2="5" y2="12"></line>
+                                <polyline points="12 19 5 12 12 5"></polyline>
+                            </svg>
+                            Volver
+                        </button>
+                        <h2 class="view-title" id="game-view-title">Nueva Partida</h2>
+                    </div>
+
+                    <div class="game-form">
+                        <div class="game-info-section">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Campo</label>
+                                    <select id="game-course-select" class="form-input" onchange="GameView.onCourseChange()">
+                                        <option value="">Selecciona un campo</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Fecha</label>
+                                    <input type="date" id="game-date" class="form-input">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Nombre (opcional)</label>
+                                    <input type="text" id="game-name" class="form-input" placeholder="Ej: Torneo Club">
+                                </div>
+                                <div class="form-group">
+                                    <label>Hándicap</label>
+                                    <input type="number" id="game-handicap" class="form-input" value="20" min="0" max="54">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="holes-section">
+                            <div class="holes-header">
+                                <h3>Tarjeta de juego</h3>
+                            </div>
+                            <div class="holes-container" id="holes-container"></div>
+                        </div>
+
+                        <!-- Totales (colapsable) -->
+                        <div class="game-totals-wrapper">
+                            <button class="game-totals-toggle" onclick="GameView.toggleTotals()">
+                                <span class="totals-toggle-text">
+                                    <span id="totals-summary-text">Ver resumen</span>
+                                    <span class="totals-quick-view">
+                                        <strong id="quick-total-scr">0</strong> SCR • 
+                                        <strong id="quick-total-hcp">0</strong> HCP
+                                    </span>
+                                </span>
+                                <svg id="totals-toggle-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </button>
+                            
+                            <div class="game-totals collapsed" id="game-totals">
+                            <div class="totals-section">
+                                <h4>Primeros 9</h4>
+                                <div class="totals-grid">
+                                    <div class="total-item">
+                                        <span class="total-label">Golpes</span>
+                                        <span class="total-value" id="total-front-strokes">0</span>
+                                    </div>
+                                    <div class="total-item">
+                                        <span class="total-label">SCR</span>
+                                        <span class="total-value" id="total-front-scr">0</span>
+                                    </div>
+                                    <div class="total-item">
+                                        <span class="total-label">HCP</span>
+                                        <span class="total-value" id="total-front-hcp">0</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="totals-section">
+                                <h4>Últimos 9</h4>
+                                <div class="totals-grid">
+                                    <div class="total-item">
+                                        <span class="total-label">Golpes</span>
+                                        <span class="total-value" id="total-back-strokes">0</span>
+                                    </div>
+                                    <div class="total-item">
+                                        <span class="total-label">SCR</span>
+                                        <span class="total-value" id="total-back-scr">0</span>
+                                    </div>
+                                    <div class="total-item">
+                                        <span class="total-label">HCP</span>
+                                        <span class="total-value" id="total-back-hcp">0</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="totals-section totals-final">
+                                <h4>Total 18</h4>
+                                <div class="totals-grid">
+                                    <div class="total-item">
+                                        <span class="total-label">Golpes</span>
+                                        <span class="total-value" id="total-strokes">0</span>
+                                    </div>
+                                    <div class="total-item">
+                                        <span class="total-label">SCR</span>
+                                        <span class="total-value" id="total-scr">0</span>
+                                    </div>
+                                    <div class="total-item">
+                                        <span class="total-label">HCP</span>
+                                        <span class="total-value" id="total-hcp">0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+
+                        <div class="game-actions">
+                            <button class="btn-secondary btn-large" onclick="GolfApp.navigate('dashboard')">Cancelar</button>
+                            <button class="btn-primary btn-large" id="save-game-btn" onclick="GameView.saveGame()">Guardar Partida</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <!-- NAVEGACIÓN MÓVIL -->
+        <nav class="mobile-nav">
+            <button class="mobile-nav-item active" data-view="dashboard" onclick="GolfApp.navigate('dashboard')">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                <span>Partidas</span>
+            </button>
+            <button class="mobile-nav-item mobile-nav-fab" onclick="GolfApp.navigate('game')">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+            </button>
+            <button class="mobile-nav-item" data-view="courses" onclick="GolfApp.navigate('courses')">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+                <span>Campos</span>
+            </button>
+        </nav>
+
+    </div>
+
+    <!-- MODALES -->
+    
+    <!-- Modal: Detalle de Partida -->
+    <div id="game-detail-modal" class="modal">
+        <div class="modal-overlay" onclick="GolfApp.closeModal('game-detail-modal')"></div>
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 class="modal-title" id="detail-modal-title">Detalle</h3>
+                <button class="modal-close" onclick="GolfApp.closeModal('game-detail-modal')">×</button>
+            </div>
+            <div class="modal-body" id="detail-modal-body"></div>
+        </div>
+    </div>
+
+    <!-- Modal: Campo -->
+    <div id="course-modal" class="modal">
+        <div class="modal-overlay" onclick="GolfApp.closeModal('course-modal')"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="course-modal-title">Nuevo Campo</h3>
+                <button class="modal-close" onclick="GolfApp.closeModal('course-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="course-form" onsubmit="CoursesView.saveCourse(event)">
+                    <input type="hidden" id="course-id">
+                    
+                    <div class="form-group">
+                        <label>Nombre del campo *</label>
+                        <input type="text" id="course-name" class="form-input" placeholder="Club de Golf Madrid" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Localización</label>
+                        <input type="text" id="course-location" class="form-input" placeholder="Madrid, España">
+                    </div>
+
+                    <div class="form-section">
+                        <h4>Configuración de hoyos</h4>
+                        <div class="course-holes-grid" id="course-holes-grid"></div>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary" onclick="GolfApp.closeModal('course-modal')">Cancelar</button>
+                        <button type="submit" class="btn-primary">Guardar Campo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-client.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/views/dashboard.js"></script>
+    <script src="js/views/courses.js"></script>
+    <script src="js/views/game.js"></script>
+    <script src="js/app.js"></script>
+
+</body>
+</html>
