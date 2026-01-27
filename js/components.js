@@ -94,9 +94,14 @@ const Components = {
               <span>Par</span>
               <strong>${par}</strong>
             </div>
-            <div class="hole-stars">
+            <div class="hole-stars-editable">
               <span>★</span>
-              <strong>${stars}</strong>
+              <div class="hole-stars-toggle" data-hole="${holeNumber}">
+                <button type="button" class="star-toggle-btn ${stars === 0 ? 'active' : ''}" data-value="0" onclick="Components.selectGameStars(${holeNumber}, 0)">0</button>
+                <button type="button" class="star-toggle-btn ${stars === 1 ? 'active' : ''}" data-value="1" onclick="Components.selectGameStars(${holeNumber}, 1)">1</button>
+                <button type="button" class="star-toggle-btn ${stars === 2 ? 'active' : ''}" data-value="2" onclick="Components.selectGameStars(${holeNumber}, 2)">2</button>
+                <button type="button" class="star-toggle-btn ${stars === 3 ? 'active' : ''}" data-value="3" onclick="Components.selectGameStars(${holeNumber}, 3)">3</button>
+              </div>
             </div>
           </div>
         </div>
@@ -128,6 +133,30 @@ const Components = {
         </div>
       </div>
     `;
+  },
+  
+  /**
+   * Seleccionar estrellas en partida (sin modificar campo base)
+   */
+  selectGameStars(holeNumber, stars) {
+    // Desactivar todos los botones del grupo
+    const group = document.querySelector(`.hole-stars-toggle[data-hole="${holeNumber}"]`);
+    if (!group) return;
+    
+    group.querySelectorAll('.star-toggle-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    
+    // Activar el botón seleccionado
+    const selectedBtn = group.querySelector(`[data-value="${stars}"]`);
+    if (selectedBtn) {
+      selectedBtn.classList.add('active');
+    }
+    
+    // Recalcular puntos del hoyo
+    if (typeof GameView !== 'undefined') {
+      GameView.updateHoleScore(holeNumber);
+    }
   },
   
   /**
@@ -189,6 +218,33 @@ const Components = {
     const frontNine = holes.slice(0, 9);
     const backNine = holes.slice(9, 18);
     
+    // Identificar mejores y peores hoyos por rendimiento HCP
+    // Criterio: Puntos HCP (más alto = mejor rendimiento)
+    const holesWithStrokes = holes.filter(h => h.strokes > 0);
+    
+    let bestHoles = [];
+    let worstHoles = [];
+    
+    if (holesWithStrokes.length > 0) {
+      // Ordenar por puntos HCP
+      const sortedByHcp = [...holesWithStrokes].sort((a, b) => b.score_hcp - a.score_hcp);
+      
+      // Top 3 mejores hoyos (mayor puntuación HCP)
+      const numBest = Math.min(3, Math.ceil(holesWithStrokes.length * 0.2));
+      bestHoles = sortedByHcp.slice(0, numBest).map(h => h.hole_number);
+      
+      // Top 3 peores hoyos (menor puntuación HCP)
+      const numWorst = Math.min(3, Math.ceil(holesWithStrokes.length * 0.2));
+      worstHoles = sortedByHcp.slice(-numWorst).map(h => h.hole_number);
+    }
+    
+    // Función para obtener clase de rendimiento
+    const getPerformanceClass = (holeNumber) => {
+      if (bestHoles.includes(holeNumber)) return 'hole-best';
+      if (worstHoles.includes(holeNumber)) return 'hole-worst';
+      return '';
+    };
+    
     // Calcular totales
     const totalFrontScr = frontNine.reduce((sum, h) => sum + (h.score_sch || 0), 0);
     const totalFrontHcp = frontNine.reduce((sum, h) => sum + (h.score_hcp || 0), 0);
@@ -224,39 +280,44 @@ const Components = {
           </div>
         </div>
         
+        <div class="scorecard-legend">
+          <span class="legend-item"><span class="legend-dot best"></span>Mejores hoyos</span>
+          <span class="legend-item"><span class="legend-dot worst"></span>Peores hoyos</span>
+        </div>
+        
         <!-- Primeros 9 -->
         <table class="scorecard-table">
           <thead>
             <tr>
               <th>Hoyo</th>
-              ${frontNine.map(h => `<th>${h.hole_number}</th>`).join('')}
+              ${frontNine.map(h => `<th class="${getPerformanceClass(h.hole_number)}">${h.hole_number}</th>`).join('')}
               <th class="total-cell">OUT</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td>Par</td>
-              ${frontNine.map(h => `<td>${h.par}</td>`).join('')}
+              ${frontNine.map(h => `<td class="${getPerformanceClass(h.hole_number)}">${h.par}</td>`).join('')}
               <td class="total-cell">${frontNine.reduce((sum, h) => sum + h.par, 0)}</td>
             </tr>
             <tr>
               <td>★</td>
-              ${frontNine.map(h => `<td>${h.stars}</td>`).join('')}
+              ${frontNine.map(h => `<td class="${getPerformanceClass(h.hole_number)}">${h.stars}</td>`).join('')}
               <td class="total-cell">-</td>
             </tr>
             <tr class="strokes-row">
               <td>Golpes</td>
-              ${frontNine.map(h => `<td>${h.strokes}</td>`).join('')}
+              ${frontNine.map(h => `<td class="${getPerformanceClass(h.hole_number)}">${h.strokes || '-'}</td>`).join('')}
               <td class="total-cell">${totalFrontStrokes}</td>
             </tr>
             <tr class="scr-row">
               <td>SCR</td>
-              ${frontNine.map(h => `<td>${h.score_sch}</td>`).join('')}
+              ${frontNine.map(h => `<td class="${getPerformanceClass(h.hole_number)}">${h.score_sch || 0}</td>`).join('')}
               <td class="total-cell">${totalFrontScr}</td>
             </tr>
             <tr class="hcp-row">
               <td>HCP</td>
-              ${frontNine.map(h => `<td>${h.score_hcp}</td>`).join('')}
+              ${frontNine.map(h => `<td class="${getPerformanceClass(h.hole_number)}">${h.score_hcp || 0}</td>`).join('')}
               <td class="total-cell">${totalFrontHcp}</td>
             </tr>
           </tbody>
@@ -267,34 +328,34 @@ const Components = {
           <thead>
             <tr>
               <th>Hoyo</th>
-              ${backNine.map(h => `<th>${h.hole_number}</th>`).join('')}
+              ${backNine.map(h => `<th class="${getPerformanceClass(h.hole_number)}">${h.hole_number}</th>`).join('')}
               <th class="total-cell">IN</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td>Par</td>
-              ${backNine.map(h => `<td>${h.par}</td>`).join('')}
+              ${backNine.map(h => `<td class="${getPerformanceClass(h.hole_number)}">${h.par}</td>`).join('')}
               <td class="total-cell">${backNine.reduce((sum, h) => sum + h.par, 0)}</td>
             </tr>
             <tr>
               <td>★</td>
-              ${backNine.map(h => `<td>${h.stars}</td>`).join('')}
+              ${backNine.map(h => `<td class="${getPerformanceClass(h.hole_number)}">${h.stars}</td>`).join('')}
               <td class="total-cell">-</td>
             </tr>
             <tr class="strokes-row">
               <td>Golpes</td>
-              ${backNine.map(h => `<td>${h.strokes}</td>`).join('')}
+              ${backNine.map(h => `<td class="${getPerformanceClass(h.hole_number)}">${h.strokes || '-'}</td>`).join('')}
               <td class="total-cell">${totalBackStrokes}</td>
             </tr>
             <tr class="scr-row">
               <td>SCR</td>
-              ${backNine.map(h => `<td>${h.score_sch}</td>`).join('')}
+              ${backNine.map(h => `<td class="${getPerformanceClass(h.hole_number)}">${h.score_sch || 0}</td>`).join('')}
               <td class="total-cell">${totalBackScr}</td>
             </tr>
             <tr class="hcp-row">
               <td>HCP</td>
-              ${backNine.map(h => `<td>${h.score_hcp}</td>`).join('')}
+              ${backNine.map(h => `<td class="${getPerformanceClass(h.hole_number)}">${h.score_hcp || 0}</td>`).join('')}
               <td class="total-cell">${totalBackHcp}</td>
             </tr>
           </tbody>
@@ -315,9 +376,9 @@ const Components = {
             <tr>
               <td style="font-weight: bold;">Totales</td>
               <td class="total-cell">${holes.reduce((sum, h) => sum + h.par, 0)}</td>
-              <td class="total-cell">${game.total_strokes}</td>
-              <td class="total-cell scr-row">${game.score_sch}</td>
-              <td class="total-cell hcp-row">${game.score_hcp}</td>
+              <td class="total-cell">${game.total_strokes || 0}</td>
+              <td class="total-cell scr-row">${game.score_sch || 0}</td>
+              <td class="total-cell hcp-row">${game.score_hcp || 0}</td>
             </tr>
           </tbody>
         </table>

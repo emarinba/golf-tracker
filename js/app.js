@@ -71,9 +71,14 @@ const GolfApp = {
     // Actualizar estado
     this.currentView = viewName;
     
-    // Resetear GameView si no estamos editando
-    if (viewName === 'game' && !GameView.editingGameId) {
-      GameView.reset();
+    // CRÍTICO: Resetear GameView SOLO si navegamos a 'game' SIN estar en modo edición
+    // La edición se marca ANTES de navegar, por eso comprobamos aquí
+    if (viewName === 'game') {
+      // Si NO hay editingGameId, es una NUEVA partida -> resetear
+      if (!GameView.editingGameId) {
+        GameView.reset();
+      }
+      // Si SÍ hay editingGameId, ya se cargó con loadGameForEdit() -> no resetear
     }
     
     // Scroll al inicio

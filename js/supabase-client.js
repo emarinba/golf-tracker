@@ -12,8 +12,8 @@
  * ⚠️ IMPORTANTE: Reemplaza con tus credenciales de Supabase
  * Obtén estos valores de: https://app.supabase.com/project/_/settings/api
  */
-const SUPABASE_URL = 'https://ynfmwdurzpjavmjbywhm.supabase.co'; // ⬅️ CAMBIAR AQUÍ
-const SUPABASE_ANON_KEY = 'sb_publishable_8Fy1L0P-l-om5qjZEYYNfw_LY6biu0V';           // ⬅️ CAMBIAR AQUÍ
+const SUPABASE_URL = 'https://ynfmwdurzpjavmjbywhm.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_8Fy1L0P-l-om5qjZEYYNfw_LY6biu0V';
 
 // Verificar que Supabase esté disponible
 if (typeof window.supabase === 'undefined') {
@@ -452,6 +452,17 @@ const SupabaseGames = {
    */
   async update(gameId, updates) {
     try {
+      console.log('🔄 API: Actualizando partida ID:', gameId);
+      console.log('📊 API: Updates recibidos:', {
+        courseId: updates.courseId,
+        gameDate: updates.gameDate,
+        hoyos: updates.holes?.length || 0
+      });
+      
+      if (!gameId) {
+        throw new Error('ID de partida no proporcionado');
+      }
+      
       const gameUpdates = {};
       if (updates.gameDate) gameUpdates.game_date = updates.gameDate;
       if (updates.gameName !== undefined) gameUpdates.game_name = updates.gameName;
@@ -467,6 +478,7 @@ const SupabaseGames = {
         gameUpdates.score_hcp = scoreHcp;
         gameUpdates.score_sch = scoreSch;
 
+        console.log('🗑️ API: Eliminando hoyos antiguos de partida:', gameId);
         await supabaseClient
           .from('holes')
           .delete()
@@ -482,11 +494,13 @@ const SupabaseGames = {
           score_sch: h.sch || h.score_sch || 0
         }));
 
+        console.log('➕ API: Insertando', holesData.length, 'hoyos nuevos');
         await supabaseClient
           .from('holes')
           .insert(holesData);
       }
 
+      console.log('📝 API: Actualizando tabla games');
       const { data, error } = await supabaseClient
         .from('games')
         .update(gameUpdates)

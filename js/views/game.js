@@ -112,25 +112,35 @@ const GameView = {
   },
   
   /**
-   * Actualizar puntuación de un hoyo cuando cambian los golpes
+   * Actualizar puntuación de un hoyo cuando cambian los golpes o estrellas
    */
   updateHoleScore(holeNumber) {
     const index = holeNumber - 1;
     
     // Obtener valores
     const strokesInput = document.getElementById(`strokes-${holeNumber}`);
-    const strokes = parseInt(strokesInput.value) || 0;
+    const strokes = strokesInput.value ? parseInt(strokesInput.value) : 0;
     
     // Obtener par y estrellas del DOM
     const holeCard = strokesInput.closest('.hole-card');
     const parText = holeCard.querySelector('.hole-par strong').textContent;
-    const starsText = holeCard.querySelector('.hole-stars strong').textContent;
+    
+    // Leer estrellas desde los botones activos
+    const starsGroup = holeCard.querySelector('.hole-stars-toggle');
+    const activeStarBtn = starsGroup?.querySelector('.star-toggle-btn.active');
+    const stars = activeStarBtn ? parseInt(activeStarBtn.dataset.value) : 0;
     
     const par = parseInt(parText);
-    const stars = parseInt(starsText);
     
-    // Calcular puntos
-    const { scr, hcp } = Utils.calculatePoints(par, stars, strokes);
+    // Calcular puntos (solo si hay golpes)
+    let scr = 0;
+    let hcp = 0;
+    
+    if (strokes > 0) {
+      const points = Utils.calculatePoints(par, stars, strokes);
+      scr = points.scr;
+      hcp = points.hcp;
+    }
     
     // Actualizar display
     document.getElementById(`scr-${holeNumber}`).textContent = scr;
@@ -218,6 +228,13 @@ const GameView = {
    */
   async saveGame() {
     try {
+      console.log('💾 Iniciando guardado de partida');
+      console.log('📊 Estado actual:', {
+        editingGameId: this.editingGameId,
+        esNueva: !this.editingGameId,
+        holesData: this.holesData.length
+      });
+      
       // Validar fecha
       const gameDate = document.getElementById('game-date').value;
       if (!gameDate) {
@@ -225,22 +242,32 @@ const GameView = {
         return;
       }
       
-      // Validar que se hayan introducido golpes
-      const totalStrokes = this.holesData.reduce((sum, h) => sum + (h?.strokes || 0), 0);
-      if (totalStrokes === 0) {
+      // Contar hoyos con golpes (validar al menos 1 hoyo jugado)
+      const holesWithStrokes = this.holesData.filter(h => h?.strokes > 0).length;
+      
+      console.log('🎯 Hoyos con golpes:', holesWithStrokes);
+      
+      if (holesWithStrokes === 0) {
         Utils.showToast('Por favor introduce los golpes de al menos un hoyo', 'warning');
         return;
       }
       
-      // Recopilar todos los hoyos con datos
+      // Recopilar solo los hoyos con golpes (filtrar vacíos para BD)
       const holes = [];
       for (let i = 1; i <= 18; i++) {
         const strokesInput = document.getElementById(`strokes-${i}`);
         const strokes = parseInt(strokesInput.value) || 0;
         
+        // Solo incluir hoyos con golpes > 0
+        if (strokes === 0) continue;
+        
         const holeCard = strokesInput.closest('.hole-card');
         const par = parseInt(holeCard.querySelector('.hole-par strong').textContent);
-        const stars = parseInt(holeCard.querySelector('.hole-stars strong').textContent);
+        
+        // Leer estrellas desde botones activos
+        const starsGroup = holeCard.querySelector('.hole-stars-toggle');
+        const activeStarBtn = starsGroup?.querySelector('.star-toggle-btn.active');
+        const stars = activeStarBtn ? parseInt(activeStarBtn.dataset.value) : 0;
         
         const scr = parseInt(document.getElementById(`scr-${i}`).textContent) || 0;
         const hcp = parseInt(document.getElementById(`hcp-${i}`).textContent) || 0;
@@ -264,19 +291,31 @@ const GameView = {
         holes
       };
       
+      console.log('📦 Datos a guardar:', {
+        esNueva: !this.editingGameId,
+        gameId: this.editingGameId,
+        courseId: gameData.courseId,
+        fecha: gameData.gameDate,
+        hoyosEnviados: holes.length
+      });
+      
       // Deshabilitar botón
       const btn = document.getElementById('save-game-btn');
-      btn.disabled = true;
-      btn.classList.add('loading');
+      if (btn) {
+        btn.disabled = true;
+        btn.classList.add('loading');
+      }
       
       let result;
       
       if (this.editingGameId) {
-        // Actualizar
+        // Actualizar partida existente
+        console.log('🔄 ACTUALIZAR partida:', this.editingGameId);
         result = await window.SupabaseAPI.games.update(this.editingGameId, gameData);
         Utils.showToast('Partida actualizada correctamente', 'success');
       } else {
-        // Crear
+        // Crear nueva partida
+        console.log('➕ CREAR nueva partida');
         result = await window.SupabaseAPI.games.create(gameData);
         Utils.showToast('Partida guardada correctamente', 'success');
       }
@@ -285,8 +324,18 @@ const GameView = {
         throw new Error(result.error);
       }
       
-      // Resetear y volver al dashboard
+      console.log('✅ Partida guardada correctamente, ID:', this.editingGameId || 'nueva');
+      
+      // Rehabilitar botón ANTES de resetear
+      if (btn) {
+        btn.disabled = false;
+        btn.classList.remove('loading');
+      }
+      
+      // CRÍTICO: Resetear ANTES de navegar
       this.reset();
+      
+      // Volver al dashboard
       GolfApp.navigate('dashboard');
       
     } catch (error) {
@@ -305,7 +354,14 @@ const GameView = {
    */
   loadGameForEdit(game) {
     console.log('✏️ Cargando partida para editar:', game.id);
+    console.log('📊 Datos de la partida:', {
+      id: game.id,
+      fecha: game.game_date,
+      campo: game.course_id,
+      hoyos: game.holes?.length || 0
+    });
     
+    // CRÍTICO: Establecer ID de edición ANTES de cargar datos
     this.editingGameId = game.id;
     
     // Actualizar título
@@ -318,19 +374,47 @@ const GameView = {
     document.getElementById('game-name').value = game.game_name || '';
     document.getElementById('game-handicap').value = game.handicap_total;
     
-    // Cargar hoyos
-    const holes = game.holes || [];
-    this.holesData = holes.map((h, i) => ({
+    // Crear array completo de 18 hoyos
+    // Combinar hoyos guardados con hoyos por defecto
+    const savedHoles = game.holes || [];
+    const completeHoles = [];
+    
+    console.log('📝 Hoyos guardados en BD:', savedHoles.length);
+    
+    for (let i = 1; i <= 18; i++) {
+      // Buscar si este hoyo está guardado
+      const savedHole = savedHoles.find(h => h.hole_number === i);
+      
+      if (savedHole) {
+        // Usar datos guardados
+        completeHoles.push(savedHole);
+      } else {
+        // Usar defaults (hoyo vacío)
+        completeHoles.push({
+          hole_number: i,
+          par: 4,
+          stars: 0,
+          strokes: 0,
+          score_sch: 0,
+          score_hcp: 0
+        });
+      }
+    }
+    
+    // Actualizar holesData
+    this.holesData = completeHoles.map((h, i) => ({
       hole_number: h.hole_number || i + 1,
       par: h.par,
       stars: h.stars,
-      strokes: h.strokes,
-      scr: h.score_sch,
-      hcp: h.score_hcp
+      strokes: h.strokes || 0,
+      scr: h.score_sch || 0,
+      hcp: h.score_hcp || 0
     }));
     
-    // Renderizar hoyos con los datos
-    this.renderHolesWithData(holes);
+    console.log('✅ Estado cargado - editingGameId:', this.editingGameId);
+    
+    // Renderizar todos los hoyos (18)
+    this.renderHolesWithData(completeHoles);
   },
   
   /**
@@ -342,29 +426,50 @@ const GameView = {
     
     container.innerHTML = holes.map((h, i) => {
       const holeNumber = h.hole_number || i + 1;
-      return Components.renderHoleCard(holeNumber, h.par, h.stars, h.strokes);
+      // Permitir valores 0 o null sin problemas
+      const strokes = h.strokes || '';
+      return Components.renderHoleCard(holeNumber, h.par, h.stars, strokes);
     }).join('');
     
     this.updateTotals();
   },
   
   /**
-   * Resetear formulario
+   * Resetear formulario y estado
    */
   reset() {
+    console.log('🔄 Reseteando GameView');
+    
+    // CRÍTICO: Limpiar estado de edición
     this.editingGameId = null;
     this.currentCourseId = null;
     this.holesData = [];
     
+    // Resetear título
     const title = document.getElementById('game-view-title');
     if (title) title.textContent = 'Nueva Partida';
     
+    // Resetear formulario
     document.getElementById('game-course-select').value = '';
     document.getElementById('game-date').value = Utils.getTodayDate();
     document.getElementById('game-name').value = '';
     document.getElementById('game-handicap').value = '20';
     
+    // CRÍTICO: Rehabilitar botón guardar
+    const btn = document.getElementById('save-game-btn');
+    if (btn) {
+      btn.disabled = false;
+      btn.classList.remove('loading');
+    }
+    
+    // Limpiar container de hoyos
+    const container = document.getElementById('holes-container');
+    if (container) container.innerHTML = '';
+    
+    // Renderizar hoyos vacíos
     this.renderHoles();
+    
+    console.log('✅ GameView reseteado');
   }
 };
 
