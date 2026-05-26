@@ -195,7 +195,13 @@ const SupabaseCourses = {
         .from('courses')
         .insert({
           name: courseData.name,
-          location: courseData.location || null
+          location: courseData.location || null,
+          cr_18:    courseData.cr_18    || null,
+          slope_18: courseData.slope_18 || null,
+          par_18:   courseData.par_18   || null,
+          cr_9:     courseData.cr_9     || null,
+          slope_9:  courseData.slope_9  || null,
+          par_9:    courseData.par_9    || null
         })
         .select()
         .single();
@@ -231,7 +237,13 @@ const SupabaseCourses = {
     try {
       const courseUpdates = {};
       if (updates.name) courseUpdates.name = updates.name;
-      if (updates.location !== undefined) courseUpdates.location = updates.location;
+      if (updates.location  !== undefined) courseUpdates.location  = updates.location;
+      if (updates.cr_18     !== undefined) courseUpdates.cr_18     = updates.cr_18;
+      if (updates.slope_18  !== undefined) courseUpdates.slope_18  = updates.slope_18;
+      if (updates.par_18    !== undefined) courseUpdates.par_18    = updates.par_18;
+      if (updates.cr_9      !== undefined) courseUpdates.cr_9      = updates.cr_9;
+      if (updates.slope_9   !== undefined) courseUpdates.slope_9   = updates.slope_9;
+      if (updates.par_9     !== undefined) courseUpdates.par_9     = updates.par_9;
 
       let data = null;
       if (Object.keys(courseUpdates).length > 0) {
@@ -619,7 +631,86 @@ const SupabaseStats = {
 };
 
 // =====================================================================
-// 6. EXPORTAR API GLOBAL
+// 6. OPERACIONES CON HÁNDICAP OFICIAL WHS (handicap_rounds)
+// =====================================================================
+
+const SupabaseHandicap = {
+
+  async getAll() {
+    try {
+      if (!currentUser) throw new Error('Usuario no autenticado');
+
+      const { data, error } = await supabaseClient
+        .from('handicap_rounds')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .order('round_date', { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+      return { data, error: null };
+    } catch (error) {
+      console.error('Error obteniendo rondas hándicap:', error);
+      return { data: [], error: error.message };
+    }
+  },
+
+  async bulkInsert(rounds) {
+    try {
+      if (!currentUser) throw new Error('Usuario no autenticado');
+
+      // Las importadas por JSON se marcan como 'import' → inamovibles en UI
+      const rows = rounds.map(r => ({ ...r, user_id: currentUser.id, source: 'import' }));
+
+      const { error } = await supabaseClient
+        .from('handicap_rounds')
+        .insert(rows);
+
+      if (error) throw error;
+      return { error: null };
+    } catch (error) {
+      console.error('Error insertando rondas hándicap:', error);
+      return { error: error.message };
+    }
+  },
+
+  async insertSingle(round) {
+    try {
+      if (!currentUser) throw new Error('Usuario no autenticado');
+
+      // Las enviadas desde la app se marcan como 'tracker' → eliminables
+      const { data, error } = await supabaseClient
+        .from('handicap_rounds')
+        .insert({ ...round, user_id: currentUser.id, source: round.source || 'tracker' })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { data, error: null };
+    } catch (error) {
+      console.error('Error insertando ronda hándicap:', error);
+      return { data: null, error: error.message };
+    }
+  },
+
+  async delete(roundId) {
+    try {
+      const { error } = await supabaseClient
+        .from('handicap_rounds')
+        .delete()
+        .eq('id', roundId);
+
+      if (error) throw error;
+      return { error: null };
+    } catch (error) {
+      console.error('Error eliminando ronda hándicap:', error);
+      return { error: error.message };
+    }
+  }
+};
+
+// =====================================================================
+// 7. EXPORTAR API GLOBAL
 // =====================================================================
 
 window.SupabaseAPI = {
@@ -627,6 +718,7 @@ window.SupabaseAPI = {
   courses: SupabaseCourses,
   games: SupabaseGames,
   stats: SupabaseStats,
+  handicap: SupabaseHandicap,
   client: supabaseClient,
   getCurrentUser: () => currentUser
 };

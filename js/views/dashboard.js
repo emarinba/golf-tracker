@@ -210,7 +210,34 @@ const DashboardView = {
   },
   
   /**
-   * Eliminar partida
+   * Enviar partida al módulo de hándicap oficial
+   */
+  sendToHandicap(gameId) {
+    const game = this.games.find(g => g.id === gameId);
+    if (!game) {
+      Utils.showToast('Partida no encontrada', 'error');
+      return;
+    }
+    if (typeof HandicapView === 'undefined') {
+      Utils.showToast('Módulo de hándicap no disponible', 'error');
+      return;
+    }
+
+    const holesPlayed = (game.holes || []).filter(h => h.strokes > 0).length;
+    HandicapView.promptAddFromGame({
+      id:             game.id,
+      game_date:      game.game_date,
+      game_name:      game.game_name,
+      course_name:    game.courses?.name || null,
+      exact_index:    game.exact_index   || null,
+      handicap_total: game.handicap_total,
+      total_strokes:  game.total_strokes,
+      holes_played:   holesPlayed <= 9 ? 9 : 18,
+      courseObj:      game.courses       || null,
+    });
+  },
+
+  /**
    */
   async deleteGame(gameId) {
     const confirmed = await Utils.confirm(

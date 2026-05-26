@@ -1,0 +1,589 @@
+/**
+ * =====================================================================
+ * HANDICAP.CSS - Estilos para el módulo de Hándicap Oficial WHS
+ * Coherente con main.css y components.css existentes
+ * ===================================================================== */
+
+/* =====================================================================
+   1. RESUMEN SUPERIOR DE HÁNDICAP
+   ===================================================================== */
+
+.handicap-summary {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.handicap-index-card {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-6);
+  color: white;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+}
+
+.handicap-index-label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  opacity: 0.85;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--space-2);
+}
+
+.handicap-index-value {
+  font-size: 4rem;
+  font-weight: var(--font-extrabold);
+  line-height: 1;
+  margin-bottom: var(--space-2);
+}
+
+.handicap-index-sub {
+  font-size: var(--text-sm);
+  opacity: 0.75;
+}
+
+.handicap-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+}
+
+.handicap-stat-item {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: var(--space-4);
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.handicap-stat-label {
+  display: block;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-1);
+}
+
+.handicap-stat-value {
+  display: block;
+  font-size: var(--text-2xl);
+  font-weight: var(--font-extrabold);
+  color: var(--text-primary);
+}
+
+.handicap-stat-value.stat-best {
+  color: var(--primary);
+}
+
+/* =====================================================================
+   2. BARRA DE ACCIONES
+   ===================================================================== */
+
+.handicap-actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+  flex-wrap: wrap;
+}
+
+/* =====================================================================
+   3. TABLA DE RONDAS
+   ===================================================================== */
+
+.handicap-table-wrapper {
+  background: var(--bg-primary);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.handicap-table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+}
+
+.handicap-table-title {
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+}
+
+.handicap-table-legend {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+
+.legend-best8 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.legend-best8::before {
+  content: '';
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background: rgba(22, 163, 74, 0.15);
+  border: 2px solid var(--primary);
+}
+
+/* Contenedor con scroll horizontal en móvil */
+.handicap-table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.handicap-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-xs);
+  min-width: 900px;
+}
+
+.handicap-table thead th {
+  padding: var(--space-3) var(--space-2);
+  text-align: center;
+  background: var(--bg-tertiary);
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.handicap-table thead th:nth-child(1) {
+  width: 36px;
+  text-align: center;
+}
+
+.handicap-table thead th:nth-child(2) {
+  width: 90px;
+  text-align: left;
+  padding-left: var(--space-3);
+}
+
+.handicap-table thead th:nth-child(3) {
+  text-align: left;
+  padding-left: var(--space-3);
+}
+
+.handicap-table tbody tr {
+  border-bottom: 1px solid var(--border-color);
+  transition: background var(--transition-fast);
+}
+
+.handicap-table tbody tr:hover {
+  background: var(--bg-secondary);
+}
+
+.handicap-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.handicap-table tbody td {
+  padding: var(--space-3) var(--space-2);
+  text-align: center;
+  color: var(--text-primary);
+  font-size: var(--text-xs);
+}
+
+.handicap-table tbody td:nth-child(2) {
+  text-align: left;
+  padding-left: var(--space-3);
+  white-space: nowrap;
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+
+.handicap-table tbody td:nth-child(3) {
+  text-align: left;
+  padding-left: var(--space-3);
+  font-weight: var(--font-medium);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Número de fila */
+.row-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+/* Columna SD FINAL — la más importante */
+.col-sd-final {
+  font-weight: var(--font-extrabold) !important;
+  font-size: var(--text-sm) !important;
+}
+
+/* =====================================================================
+   4. FILA: MEJOR 8 (destacada)
+   ===================================================================== */
+
+.handicap-table tbody tr.is-best-8 {
+  background: rgba(22, 163, 74, 0.06);
+}
+
+.handicap-table tbody tr.is-best-8:hover {
+  background: rgba(22, 163, 74, 0.1);
+}
+
+.handicap-table tbody tr.is-best-8 .row-number {
+  background: var(--primary);
+  color: white;
+}
+
+.handicap-table tbody tr.is-best-8 .col-sd-final {
+  color: var(--primary);
+}
+
+/* Badge "TOP 8" */
+.badge-best8 {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--space-2);
+  background: var(--primary);
+  color: white;
+  border-radius: var(--border-radius-sm);
+  font-size: 10px;
+  font-weight: var(--font-bold);
+  letter-spacing: 0.03em;
+  margin-left: var(--space-1);
+  vertical-align: middle;
+}
+
+/* =====================================================================
+   5. COLUMNAS NUMÉRICAS — colores semánticos
+   ===================================================================== */
+
+.col-score-diff {
+  color: var(--text-secondary);
+  font-weight: var(--font-semibold);
+}
+
+.col-adjustment-neg {
+  color: var(--primary);
+  font-weight: var(--font-semibold);
+}
+
+.col-adjustment-zero {
+  color: var(--text-tertiary);
+}
+
+/* =====================================================================
+   6. ACCIONES POR FILA
+   ===================================================================== */
+
+.handicap-table .row-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-1);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.handicap-table tbody tr:hover .row-actions {
+  opacity: 1;
+}
+
+.row-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--border-radius-sm);
+  font-size: 12px;
+  transition: all var(--transition-fast);
+  color: var(--text-secondary);
+}
+
+.row-action-btn:hover {
+  background: var(--bg-tertiary);
+  color: var(--error);
+}
+
+/* =====================================================================
+   7. EMPTY STATE específico
+   ===================================================================== */
+
+.handicap-empty {
+  text-align: center;
+  padding: var(--space-12) var(--space-6);
+}
+
+.handicap-empty-icon {
+  font-size: 3.5rem;
+  margin-bottom: var(--space-4);
+  opacity: 0.4;
+}
+
+.handicap-empty-title {
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.handicap-empty-text {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-6);
+  max-width: 360px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* =====================================================================
+   8. MODAL DE IMPORTACIÓN
+   ===================================================================== */
+
+.import-tabs {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 0;
+}
+
+.import-tab {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-secondary);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all var(--transition-fast);
+}
+
+.import-tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.import-tab-content {
+  display: none;
+}
+
+.import-tab-content.active {
+  display: block;
+}
+
+.import-textarea {
+  width: 100%;
+  min-height: 160px;
+  padding: var(--space-3);
+  font-family: 'Courier New', monospace;
+  font-size: var(--text-xs);
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  resize: vertical;
+  transition: border-color var(--transition-fast);
+}
+
+.import-textarea:focus {
+  border-color: var(--primary);
+  outline: none;
+  background: var(--bg-primary);
+}
+
+.import-file-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-6);
+  border: 2px dashed var(--border-color);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+}
+
+.import-file-label:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: rgba(22, 163, 74, 0.04);
+}
+
+.import-file-input {
+  display: none;
+}
+
+.import-format-hint {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  margin-top: var(--space-2);
+  line-height: 1.6;
+}
+
+/* Preview de importación */
+.import-preview {
+  margin-top: var(--space-4);
+}
+
+.import-preview-title {
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-3);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.import-preview-count {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--space-2);
+  background: var(--primary);
+  color: white;
+  border-radius: var(--border-radius-sm);
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+}
+
+.import-preview-scroll {
+  max-height: 240px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+}
+
+.import-preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-xs);
+  min-width: 600px;
+}
+
+.import-preview-table th {
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-tertiary);
+  font-weight: var(--font-bold);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.import-preview-table td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.import-preview-table tr:last-child td {
+  border-bottom: none;
+}
+
+.import-error-msg {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  border-radius: var(--border-radius-sm);
+  color: #991b1b;
+  font-size: var(--text-sm);
+  margin-top: var(--space-3);
+}
+
+/* =====================================================================
+   9. MODAL AÑADIR RONDA MANUAL
+   ===================================================================== */
+
+.manual-round-form .form-row-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.cr-slope-par-group {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: var(--space-2);
+}
+
+.cr-slope-par-group input {
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--text-sm);
+  text-align: center;
+  transition: border-color var(--transition-fast);
+}
+
+.cr-slope-par-group input:focus {
+  border-color: var(--primary);
+  outline: none;
+  background: var(--bg-primary);
+}
+
+/* =====================================================================
+   10. RESPONSIVE
+   ===================================================================== */
+
+@media (min-width: 640px) {
+  .handicap-summary {
+    grid-template-columns: 280px 1fr;
+    align-items: start;
+  }
+
+  .handicap-index-card {
+    text-align: left;
+  }
+
+  .handicap-table {
+    font-size: var(--text-sm);
+  }
+
+  .handicap-table thead th,
+  .handicap-table tbody td {
+    padding: var(--space-3);
+  }
+}
+
+@media (min-width: 768px) {
+  .handicap-index-value {
+    font-size: 5rem;
+  }
+
+  .handicap-table .row-actions {
+    opacity: 0;
+  }
+}

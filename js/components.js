@@ -44,8 +44,13 @@ const Components = {
           <button class="game-card-action-edit" onclick="DashboardView.editGame('${game.id}')">
             ✏️ Editar
           </button>
-          <button class="game-card-action-delete" onclick="DashboardView.deleteGame('${game.id}')">
-            🗑️
+          <button class="game-card-action-hcp" onclick="DashboardView.sendToHandicap('${game.id}')" title="Enviar a hándicap oficial">
+            📊 Hándicap
+          </button>
+        </div>
+        <div class="game-card-delete-row">
+          <button class="game-card-action-delete-subtle" onclick="DashboardView.deleteGame('${game.id}')">
+            🗑️ Eliminar partida
           </button>
         </div>
       </div>

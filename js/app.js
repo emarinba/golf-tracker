@@ -46,6 +46,7 @@ const GolfApp = {
     await DashboardView.initialize();
     await CoursesView.initialize();
     await GameView.initialize();
+    await HandicapView.initialize();
   },
   
   /**

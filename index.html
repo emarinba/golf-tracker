@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="css/auth.css">
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/views.css">
+    <link rel="stylesheet" href="css/handicap.css">
 </head>
 <body>
 
@@ -132,6 +133,13 @@
                             </svg>
                             <span>Nueva Partida</span>
                         </button>
+                        <button class="header-nav-item" data-view="handicap" onclick="GolfApp.navigate('handicap')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 11l3 3L22 4"></path>
+                                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                            </svg>
+                            <span>Hándicap</span>
+                        </button>
                     </nav>
                 </div>
                 <div class="header-right">
@@ -224,6 +232,87 @@
                     </div>
                 </div>
 
+                <!-- VISTA: HÁNDICAP OFICIAL -->
+                <div id="view-handicap" class="view-container">
+                    <div class="view-header">
+                        <h2 class="view-title">Hándicap Oficial</h2>
+                        <button class="btn-primary btn-sm" onclick="typeof HandicapView !== 'undefined' ? HandicapView.openImportModal() : alert('Módulo Hándicap no cargado. Verifica que js/views/handicap.js existe.')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            Importar
+                        </button>
+                    </div>
+
+                    <!-- Resumen superior -->
+                    <div class="handicap-summary">
+                        <div class="handicap-index-card">
+                            <div class="handicap-index-label">Índice de Hándicap WHS</div>
+                            <div class="handicap-index-value" id="hcp-index-value">--</div>
+                            <div class="handicap-index-sub" id="hcp-index-sub">Cargando...</div>
+                        </div>
+                        <div class="handicap-stats-grid">
+                            <div class="handicap-stat-item">
+                                <span class="handicap-stat-label">Pruebas</span>
+                                <span class="handicap-stat-value" id="hcp-total-rounds">0</span>
+                            </div>
+                            <div class="handicap-stat-item">
+                                <span class="handicap-stat-label">Media mejores</span>
+                                <span class="handicap-stat-value stat-best" id="hcp-best8-avg">--</span>
+                            </div>
+                            <div class="handicap-stat-item">
+                                <span class="handicap-stat-label">Factor WHS</span>
+                                <span class="handicap-stat-value">0.96</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de rondas -->
+                    <div id="handicap-table-wrapper" class="handicap-table-wrapper hidden">
+                        <div class="handicap-table-header">
+                            <span class="handicap-table-title">Últimas 20 rondas válidas</span>
+                            <div class="handicap-table-legend">
+                                <span class="legend-best8">Incluidas en cálculo</span>
+                            </div>
+                        </div>
+                        <div class="handicap-table-scroll">
+                            <table class="handicap-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>FECHA</th>
+                                        <th>TORNEO</th>
+                                        <th>HOY</th>
+                                        <th>CR/SL/PAR</th>
+                                        <th>ÍNDICE</th>
+                                        <th>HCP</th>
+                                        <th>ASC</th>
+                                        <th>GROSS</th>
+                                        <th>STABL</th>
+                                        <th>SCORE DIFF</th>
+                                        <th>AJUSTE</th>
+                                        <th>SD FINAL</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="handicap-rounds-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Empty state -->
+                    <div id="handicap-empty" class="handicap-empty">
+                        <div class="handicap-empty-icon">🏌️</div>
+                        <h3 class="handicap-empty-title">Sin rondas registradas</h3>
+                        <p class="handicap-empty-text">Importa tu historial para calcular tu hándicap oficial WHS</p>
+                        <button class="btn-primary" onclick="HandicapView.openImportModal()">
+                            Importar rondas
+                        </button>
+                    </div>
+                </div>
+
                 <!-- VISTA: NUEVA PARTIDA -->
                 <div id="view-game" class="view-container">
                     <div class="view-header">
@@ -259,6 +348,10 @@
                                 <div class="form-group">
                                     <label>Hándicap</label>
                                     <input type="number" id="game-handicap" class="form-input" value="20" min="0" max="54">
+                                </div>
+                                <div class="form-group">
+                                    <label>Índice Exacto</label>
+                                    <input type="number" id="game-exact-index" class="form-input" step="0.1" min="0" max="54" placeholder="34.3">
                                 </div>
                             </div>
                         </div>
@@ -344,6 +437,12 @@
 
                         <div class="game-actions">
                             <button class="btn-secondary btn-large" onclick="GolfApp.navigate('dashboard')">Cancelar</button>
+                            <button class="btn-secondary btn-large" id="send-hcp-btn"
+                                onclick="GameView.sendCurrentGameToHandicap()"
+                                title="Enviar esta partida al módulo de hándicap oficial"
+                                style="background:var(--accent);color:white;border-color:var(--accent)">
+                                📊 Hándicap
+                            </button>
                             <button class="btn-primary btn-large" id="save-game-btn" onclick="GameView.saveGame()">Guardar Partida</button>
                         </div>
                     </div>
@@ -375,6 +474,13 @@
                     <polyline points="14 2 14 8 20 8"></polyline>
                 </svg>
                 <span>Campos</span>
+            </button>
+            <button class="mobile-nav-item" data-view="handicap" onclick="GolfApp.navigate('handicap')">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 11l3 3L22 4"></path>
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                </svg>
+                <span>Hándicap</span>
             </button>
         </nav>
 
@@ -421,11 +527,119 @@
                         <div class="course-holes-grid" id="course-holes-grid"></div>
                     </div>
 
+                    <div class="form-section">
+                        <h4>Valoración del campo (hándicap WHS)</h4>
+                        <p style="font-size:var(--text-xs);color:var(--text-secondary);margin-bottom:var(--space-3);">
+                            Datos oficiales RFEG. Consulta la tarjeta de puntuación del campo.
+                        </p>
+                        <div style="margin-bottom:var(--space-4);">
+                            <label style="display:block;font-size:var(--text-xs);font-weight:var(--font-semibold);color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:var(--space-2);">18 Hoyos</label>
+                            <div class="cr-slope-par-group">
+                                <div class="course-hole-field">
+                                    <label>CR</label>
+                                    <input type="number" id="course-cr18" step="0.1" min="60" max="80" placeholder="72.1" class="form-input">
+                                </div>
+                                <div class="course-hole-field">
+                                    <label>Slope</label>
+                                    <input type="number" id="course-slope18" min="55" max="155" placeholder="132" class="form-input">
+                                </div>
+                                <div class="course-hole-field">
+                                    <label>Par</label>
+                                    <input type="number" id="course-par18" min="60" max="76" placeholder="72" class="form-input">
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:var(--text-xs);font-weight:var(--font-semibold);color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:var(--space-2);">9 Hoyos <span style="font-weight:var(--font-normal)">(opcional)</span></label>
+                            <div class="cr-slope-par-group">
+                                <div class="course-hole-field">
+                                    <label>CR</label>
+                                    <input type="number" id="course-cr9" step="0.1" min="30" max="45" placeholder="36.9" class="form-input">
+                                </div>
+                                <div class="course-hole-field">
+                                    <label>Slope</label>
+                                    <input type="number" id="course-slope9" min="55" max="155" placeholder="131" class="form-input">
+                                </div>
+                                <div class="course-hole-field">
+                                    <label>Par</label>
+                                    <input type="number" id="course-par9" min="27" max="40" placeholder="36" class="form-input">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="modal-actions">
                         <button type="button" class="btn-secondary" onclick="GolfApp.closeModal('course-modal')">Cancelar</button>
                         <button type="submit" class="btn-primary">Guardar Campo</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Importar rondas de hándicap -->
+    <div id="handicap-import-modal" class="modal">
+        <div class="modal-overlay" onclick="GolfApp.closeModal('handicap-import-modal')"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Importar rondas</h3>
+                <button class="modal-close" onclick="GolfApp.closeModal('handicap-import-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:var(--text-sm);color:var(--text-secondary);margin-bottom:var(--space-4);">
+                    Sube el fichero <strong>handicap_import.json</strong> o pega el contenido directamente.
+                </p>
+
+                <label class="import-file-label">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    Seleccionar fichero JSON
+                    <input type="file" class="import-file-input" id="import-file-input"
+                           accept=".json,application/json"
+                           onchange="HandicapView.handleFileUpload(event)">
+                </label>
+
+                <div style="text-align:center;margin:var(--space-3) 0;font-size:var(--text-xs);color:var(--text-tertiary);">— o pega el JSON directamente —</div>
+
+                <textarea
+                    id="import-json-text"
+                    class="import-textarea"
+                    placeholder='[{"date":"23/05/2026","tournament":"TORNEO EJEMPLO","holes":18,...}]'
+                    oninput="HandicapView.parseImportPreview()"
+                ></textarea>
+
+                <div id="import-error" class="import-error-msg hidden"></div>
+
+                <div id="import-preview" class="import-preview hidden">
+                    <div class="import-preview-title">
+                        Vista previa
+                        <span class="import-preview-count" id="import-preview-count">0 rondas</span>
+                    </div>
+                    <div class="import-preview-scroll">
+                        <table class="import-preview-table">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Torneo</th>
+                                    <th>Hoyos</th>
+                                    <th>CR/Slope/Par</th>
+                                    <th>SD Final</th>
+                                </tr>
+                            </thead>
+                            <tbody id="import-preview-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="btn-secondary" onclick="GolfApp.closeModal('handicap-import-modal')">Cancelar</button>
+                    <button class="btn-primary" id="import-confirm-btn" onclick="HandicapView.confirmImport()">
+                        Importar
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -439,7 +653,122 @@
     <script src="js/views/dashboard.js"></script>
     <script src="js/views/courses.js"></script>
     <script src="js/views/game.js"></script>
+    <script src="js/views/handicap.js"></script>
     <script src="js/app.js"></script>
+
+    <!-- Modal: Añadir partida al hándicap oficial -->
+    <div id="handicap-from-game-modal" class="modal">
+        <div class="modal-overlay" onclick="GolfApp.closeModal('handicap-from-game-modal')"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">¿Añadir al hándicap oficial?</h3>
+                <button class="modal-close" onclick="GolfApp.closeModal('handicap-from-game-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div style="background:var(--bg-secondary);border-radius:var(--border-radius-sm);padding:var(--space-3);margin-bottom:var(--space-4);">
+                    <div style="font-weight:var(--font-bold);color:var(--text-primary)" id="hcp-game-name">—</div>
+                    <div style="font-size:var(--text-sm);color:var(--text-secondary);margin-top:var(--space-1);">
+                        <span id="hcp-game-date-display">—</span> &nbsp;·&nbsp; <span id="hcp-game-holes">—</span>
+                    </div>
+                </div>
+
+                <p style="font-size:var(--text-sm);color:var(--text-secondary);margin-bottom:var(--space-4);">
+                    Completa los datos de campo para calcular el Score Differential y añadir esta vuelta a tu hándicap WHS.
+                </p>
+
+                <!-- Hoyos jugados -->
+                <div class="form-group">
+                    <label>Hoyos jugados</label>
+                    <select id="hcp-game-holes-select" class="form-input" onchange="HandicapView.recalcFromGameModal()">
+                        <option value="18">18 hoyos</option>
+                        <option value="9">9 hoyos</option>
+                    </select>
+                </div>
+
+                <!-- CR / Slope / Par -->
+                <div class="form-group">
+                    <label>CR / Slope / Par del campo</label>
+                    <div class="cr-slope-par-group">
+                        <div class="course-hole-field">
+                            <label>CR</label>
+                            <input type="number" id="hcp-game-cr" step="0.1" placeholder="72.1" class="form-input"
+                                   oninput="HandicapView.recalcFromGameModal()">
+                        </div>
+                        <div class="course-hole-field">
+                            <label>Slope</label>
+                            <input type="number" id="hcp-game-slope" placeholder="132" class="form-input"
+                                   oninput="HandicapView.recalcFromGameModal()">
+                        </div>
+                        <div class="course-hole-field">
+                            <label>Par</label>
+                            <input type="number" id="hcp-game-par" placeholder="72" class="form-input">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Datos del jugador -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Índice exacto</label>
+                        <input type="number" id="hcp-game-index" step="0.1" placeholder="34.3" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>HCP de juego</label>
+                        <input type="number" id="hcp-game-hcp" placeholder="40" class="form-input">
+                    </div>
+                </div>
+
+                <!-- Resultado -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Gross ajustado</label>
+                        <input type="number" id="hcp-game-gross" placeholder="102" class="form-input"
+                               oninput="HandicapView.recalcFromGameModal()">
+                    </div>
+                    <div class="form-group">
+                        <label>Stableford neto</label>
+                        <input type="number" id="hcp-game-stabl" placeholder="46" class="form-input">
+                    </div>
+                </div>
+
+                <!-- ASC -->
+                <div class="form-group">
+                    <label>ASC <span style="font-weight:var(--font-normal);color:var(--text-tertiary)">(ajuste condiciones campo, normalmente 0)</span></label>
+                    <input type="number" id="hcp-game-asc" value="0" min="-5" max="5" class="form-input"
+                           oninput="HandicapView.recalcFromGameModal()">
+                </div>
+
+                <!-- Resultado calculado (solo lectura) -->
+                <div style="background:var(--bg-secondary);border-radius:var(--border-radius-sm);padding:var(--space-4);margin-top:var(--space-2);">
+                    <div style="font-size:var(--text-xs);font-weight:var(--font-bold);color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:var(--space-3);">Resultado calculado</div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--space-3);">
+                        <div>
+                            <label style="font-size:var(--text-xs);color:var(--text-tertiary)">Score Diff</label>
+                            <input type="text" id="hcp-game-score-diff" class="form-input" readonly placeholder="—"
+                                   style="background:var(--bg-tertiary);font-weight:var(--font-bold);">
+                        </div>
+                        <div>
+                            <label style="font-size:var(--text-xs);color:var(--text-tertiary)">Ajuste Total</label>
+                            <input type="text" id="hcp-game-adjustment" class="form-input" readonly placeholder="—"
+                                   style="background:var(--bg-tertiary);">
+                        </div>
+                        <div>
+                            <label style="font-size:var(--text-xs);color:var(--text-tertiary)">SD Final</label>
+                            <input type="text" id="hcp-game-sd-final" class="form-input" readonly placeholder="—"
+                                   style="background:var(--bg-tertiary);font-weight:var(--font-extrabold);color:var(--primary);">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="btn-secondary" onclick="GolfApp.closeModal('handicap-from-game-modal')">Omitir</button>
+                    <button class="btn-primary" id="hcp-from-game-confirm-btn" onclick="HandicapView.confirmAddFromGame()">
+                        Añadir al hándicap
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 </body>
 </html>

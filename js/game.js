@@ -476,39 +476,7 @@ const GameView = {
   },
   
   /**
-   * Enviar la partida actualmente abierta (en edición) al módulo de hándicap.
-   * Disponible tanto en modo edición como antes de guardar.
-   */
-  sendCurrentGameToHandicap() {
-    if (typeof HandicapView === 'undefined') {
-      Utils.showToast('Módulo de hándicap no disponible', 'error');
-      return;
-    }
-
-    const gameDate = document.getElementById('game-date').value;
-    if (!gameDate) {
-      Utils.showToast('Introduce la fecha de la partida primero', 'warning');
-      return;
-    }
-
-    // Calcular golpes totales desde el estado actual
-    const totalStrokes = this.holesData.reduce((s, h) => s + (h?.strokes || 0), 0);
-    const holesWithStrokes = this.holesData.filter(h => h?.strokes > 0).length;
-
-    HandicapView.promptAddFromGame({
-      id:             this.editingGameId || null,
-      game_date:      gameDate,
-      game_name:      document.getElementById('game-name').value.trim() || null,
-      course_name:    this.currentCourseObj?.name || null,
-      exact_index:    parseFloat(document.getElementById('game-exact-index').value) || null,
-      handicap_total: parseInt(document.getElementById('game-handicap').value) || 0,
-      total_strokes:  totalStrokes,
-      holes_played:   holesWithStrokes <= 9 ? 9 : 18,
-      courseObj:      this.currentCourseObj || null,
-    });
-  },
-
-  /**
+   * Resetear formulario y estado
    */
   reset() {
     console.log('🔄 Reseteando GameView');

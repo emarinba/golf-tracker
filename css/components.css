@@ -293,13 +293,35 @@
   background: var(--secondary-dark);
 }
 
-.game-card-action-delete {
-  background: var(--error);
+.game-card-action-hcp {
+  background: var(--accent);
   color: white;
 }
 
-.game-card-action-delete:hover {
-  background: #dc2626;
+.game-card-action-hcp:hover {
+  background: var(--accent-dark);
+}
+
+/* Fila de eliminar — discreta, separada visualmente */
+.game-card-delete-row {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px dashed var(--border-color);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.game-card-action-delete-subtle {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--border-radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.game-card-action-delete-subtle:hover {
+  color: var(--error);
+  background: #fee2e2;
 }
 
 /* =====================================================================

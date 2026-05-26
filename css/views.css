@@ -587,8 +587,8 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--space-3);
-  max-height: calc(100vh - 400px);
-  min-height: 300px;
+  max-height: 280px;
+  min-height: 200px;
   overflow-y: auto;
   padding: var(--space-2);
 }
