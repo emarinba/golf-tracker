@@ -554,21 +554,33 @@ const SupabaseGames = {
 // =====================================================================
 
 const SupabaseStats = {
+
   /**
-   * Obtener estadísticas del usuario actual
+   * Estadísticas globales del usuario — query directa sin RPC
    */
   async getUserStats() {
     try {
-      if (!currentUser) {
-        throw new Error('Usuario no autenticado');
-      }
+      if (!currentUser) throw new Error('Usuario no autenticado');
 
       const { data, error } = await supabaseClient
-        .rpc('get_user_stats', { user_uuid: currentUser.id });
+        .from('games')
+        .select('score_hcp, score_sch, total_strokes, game_date')
+        .eq('user_id', currentUser.id);
 
       if (error) throw error;
+      if (!data || data.length === 0) return { data: null, error: null };
 
-      return { data, error: null };
+      const n = data.length;
+      const stats = {
+        totalGames:   n,
+        bestHcp:      Math.max(...data.map(g => g.score_hcp  || 0)),
+        bestSch:      Math.max(...data.map(g => g.score_sch  || 0)),
+        avgHcp:       Math.round(data.reduce((s,g) => s + (g.score_hcp || 0), 0) / n),
+        avgSch:       Math.round(data.reduce((s,g) => s + (g.score_sch || 0), 0) / n),
+        lastGameDate: data.sort((a,b) => new Date(b.game_date) - new Date(a.game_date))[0]?.game_date
+      };
+
+      return { data: stats, error: null };
     } catch (error) {
       console.error('Error al obtener estadísticas:', error);
       return { data: null, error: error.message };
@@ -576,53 +588,81 @@ const SupabaseStats = {
   },
 
   /**
-   * Obtener estadísticas por campo
+   * Estadísticas por campo — incluye mejor, media, última fecha
    */
   async getStatsByCourse() {
     try {
-      if (!currentUser) {
-        throw new Error('Usuario no autenticado');
-      }
+      if (!currentUser) throw new Error('Usuario no autenticado');
 
       const { data, error } = await supabaseClient
         .from('games')
         .select(`
           course_id,
-          courses (name),
+          courses (name, location),
           score_hcp,
           score_sch,
-          total_strokes
+          total_strokes,
+          game_date
         `)
         .eq('user_id', currentUser.id)
-        .not('course_id', 'is', null);
+        .not('course_id', 'is', null)
+        .order('game_date', { ascending: false });
 
       if (error) throw error;
 
-      const statsByCourse = {};
-      data.forEach(game => {
-        const courseName = game.courses?.name || 'Sin campo';
-        if (!statsByCourse[courseName]) {
-          statsByCourse[courseName] = {
-            games: 0,
-            totalHcp: 0,
-            totalSch: 0,
-            totalStrokes: 0
+      const map = {};
+      (data || []).forEach(game => {
+        const id   = game.course_id;
+        const name = game.courses?.name     || 'Sin campo';
+        const loc  = game.courses?.location || null;
+
+        if (!map[id]) {
+          map[id] = {
+            courseId:   id,
+            courseName: name,
+            location:   loc,
+            games:      0,
+            totalHcp:   0,
+            totalSch:   0,
+            totalStrokes: 0,
+            bestHcp:    0,
+            bestSch:    0,
+            bestStrokes: null,
+            lastDate:   null,
+            allHcp:     [],
+            allSch:     []
           };
         }
-        statsByCourse[courseName].games++;
-        statsByCourse[courseName].totalHcp += game.score_hcp;
-        statsByCourse[courseName].totalSch += game.score_sch;
-        statsByCourse[courseName].totalStrokes += game.total_strokes;
+
+        const s = map[id];
+        const hcp = game.score_hcp || 0;
+        const sch = game.score_sch || 0;
+        const str = game.total_strokes || 0;
+
+        s.games++;
+        s.totalHcp     += hcp;
+        s.totalSch     += sch;
+        s.totalStrokes += str;
+        s.bestHcp       = Math.max(s.bestHcp, hcp);
+        s.bestSch       = Math.max(s.bestSch, sch);
+        s.bestStrokes   = s.bestStrokes === null ? str : Math.min(s.bestStrokes, str);
+        s.allHcp.push(hcp);
+        s.allSch.push(sch);
+        // lastDate: como viene ordenado desc, la primera es la más reciente
+        if (!s.lastDate) s.lastDate = game.game_date;
       });
 
-      Object.keys(statsByCourse).forEach(course => {
-        const stats = statsByCourse[course];
-        stats.avgHcp = Math.round(stats.totalHcp / stats.games);
-        stats.avgSch = Math.round(stats.totalSch / stats.games);
-        stats.avgStrokes = Math.round(stats.totalStrokes / stats.games);
+      // Calcular medias
+      Object.values(map).forEach(s => {
+        s.avgHcp     = Math.round(s.totalHcp / s.games);
+        s.avgSch     = Math.round(s.totalSch / s.games);
+        s.avgStrokes = Math.round(s.totalStrokes / s.games);
       });
 
-      return { data: statsByCourse, error: null };
+      // Convertir a array ordenado por número de partidas desc
+      const result = Object.values(map).sort((a, b) => b.games - a.games);
+
+      return { data: result, error: null };
     } catch (error) {
       console.error('Error al obtener estadísticas por campo:', error);
       return { data: null, error: error.message };

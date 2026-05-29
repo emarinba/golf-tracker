@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/views.css">
     <link rel="stylesheet" href="css/handicap.css">
+    <link rel="stylesheet" href="css/stats.css">
 </head>
 <body>
 
@@ -139,6 +140,14 @@
                                 <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
                             </svg>
                             <span>Hándicap</span>
+                        </button>
+                        <button class="header-nav-item" data-view="stats" onclick="GolfApp.navigate('stats')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="20" x2="18" y2="10"></line>
+                                <line x1="12" y1="20" x2="12" y2="4"></line>
+                                <line x1="6" y1="20" x2="6" y2="14"></line>
+                            </svg>
+                            <span>Estadísticas</span>
                         </button>
                     </nav>
                 </div>
@@ -356,6 +365,89 @@
                     </div>
                 </div>
 
+                <!-- VISTA: ESTADÍSTICAS -->
+                <div id="view-stats" class="view-container">
+                    <div class="view-header">
+                        <h2 class="view-title">Estadísticas</h2>
+                        <button class="btn-secondary btn-sm" onclick="StatsView.loadAll()">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="23 4 23 10 17 10"></polyline>
+                                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                            </svg>
+                            Actualizar
+                        </button>
+                    </div>
+
+                    <!-- Tarjetas globales -->
+                    <div class="stats-global-grid" id="stats-global-grid">
+                        <div class="stats-loading" style="grid-column:1/-1">
+                            <div class="stats-loading-spinner"></div>
+                            Cargando...
+                        </div>
+                    </div>
+
+                    <!-- Gráfico evolución hándicap -->
+                    <div class="stats-section">
+                        <div class="stats-section-header">
+                            <span class="stats-section-title">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                                </svg>
+                                Evolución del hándicap
+                            </span>
+                            <div class="stats-period-pills">
+                                <button class="period-pill" data-period="6m" onclick="StatsView.setPeriod('6m')">6M</button>
+                                <button class="period-pill" data-period="1y" onclick="StatsView.setPeriod('1y')">1A</button>
+                                <button class="period-pill active" data-period="all" onclick="StatsView.setPeriod('all')">Todo</button>
+                            </div>
+                        </div>
+                        <div class="stats-section-body">
+                            <div class="chart-container chart-container-tall">
+                                <canvas id="hcp-evolution-chart"></canvas>
+                            </div>
+                            <div id="hcp-chart-empty" class="stats-chart-empty hidden">
+                                <span style="font-size:2rem">📊</span>
+                                Necesitas al menos 2 rondas de hándicap para ver la evolución
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabla por campo -->
+                    <div class="stats-section">
+                        <div class="stats-section-header">
+                            <span class="stats-section-title">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                </svg>
+                                Rendimiento por campo
+                            </span>
+                        </div>
+                        <div class="stats-section-body" style="padding:0">
+                            <div class="stats-table-scroll">
+                                <table class="stats-courses-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Campo</th>
+                                            <th>Rondas</th>
+                                            <th>Mejor HCP</th>
+                                            <th>Media HCP</th>
+                                            <th>Mejor SCR</th>
+                                            <th>Media SCR</th>
+                                            <th>Última</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="stats-courses-body"></tbody>
+                                </table>
+                            </div>
+                            <div id="stats-courses-empty" class="stats-chart-empty hidden">
+                                <span style="font-size:2rem">🏌️</span>
+                                Sin partidas con campo asignado todavía
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- VISTA: NUEVA PARTIDA -->
                 <div id="view-game" class="view-container">
                     <div class="view-header">
@@ -505,12 +597,6 @@
                 </svg>
                 <span>Partidas</span>
             </button>
-            <button class="mobile-nav-item mobile-nav-fab" onclick="GolfApp.navigate('game')">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-            </button>
             <button class="mobile-nav-item" data-view="courses" onclick="GolfApp.navigate('courses')">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
@@ -518,12 +604,32 @@
                 </svg>
                 <span>Campos</span>
             </button>
+
+            <!-- FAB centrado — position:absolute, no participa en el flex -->
+            <button class="mobile-nav-fab" onclick="GolfApp.navigate('game')">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+            </button>
+
+            <!-- Espaciador invisible que ocupa el centro en el flujo flex -->
+            <div class="mobile-nav-spacer"></div>
+
             <button class="mobile-nav-item" data-view="handicap" onclick="GolfApp.navigate('handicap')">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M9 11l3 3L22 4"></path>
                     <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
                 </svg>
                 <span>Hándicap</span>
+            </button>
+            <button class="mobile-nav-item" data-view="stats" onclick="GolfApp.navigate('stats')">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                </svg>
+                <span>Stats</span>
             </button>
         </nav>
 
@@ -689,6 +795,7 @@
 
     <!-- SCRIPTS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="js/supabase-client.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/utils.js"></script>
@@ -697,6 +804,7 @@
     <script src="js/views/courses.js"></script>
     <script src="js/views/game.js"></script>
     <script src="js/views/handicap.js"></script>
+    <script src="js/views/stats.js"></script>
     <script src="js/app.js"></script>
 
     <!-- Modal: Añadir partida al hándicap oficial -->

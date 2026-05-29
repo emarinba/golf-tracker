@@ -139,16 +139,20 @@ const GameView = {
     const strokesInput = document.getElementById(`strokes-${holeNumber}`);
     const strokes = strokesInput.value ? parseInt(strokesInput.value) : 0;
     
-    // Obtener par y estrellas del DOM
-    const holeCard = strokesInput.closest('.hole-card');
-    const parText = holeCard.querySelector('.hole-par strong').textContent;
+    // Obtener par — puede ser el badge estático o el select si está en edición
+    const parEl = document.getElementById(`hole-par-value-${holeNumber}`);
+    const parSelectEl = document.getElementById(`hole-par-select-${holeNumber}`);
+    const par = parSelectEl
+      ? parseInt(parSelectEl.value)
+      : parseInt(parEl?.textContent || 4);
     
     // Leer estrellas desde los botones activos
+    const holeCard = strokesInput.closest('.hole-card');
     const starsGroup = holeCard.querySelector('.hole-stars-toggle');
     const activeStarBtn = starsGroup?.querySelector('.star-toggle-btn.active');
     const stars = activeStarBtn ? parseInt(activeStarBtn.dataset.value) : 0;
-    
-    const par = parseInt(parText);
+
+    // par ya calculado arriba
     
     // Calcular puntos (solo si hay golpes)
     let scr = 0;
@@ -242,7 +246,81 @@ const GameView = {
   },
   
   /**
-   * Guardar partida (nueva o editada)
+   * Activar edición del par de un hoyo (doble click en el badge)
+   * Reemplaza el badge estático por un <select> inline
+   */
+  editHolePar(holeNumber) {
+    const parEl = document.getElementById(`hole-par-${holeNumber}`);
+    if (!parEl) return;
+
+    // Si ya está en modo edición, no hacer nada
+    if (document.getElementById(`hole-par-select-${holeNumber}`)) return;
+
+    const currentPar = parseInt(
+      document.getElementById(`hole-par-value-${holeNumber}`)?.textContent || 4
+    );
+
+    // Sustituir contenido del badge por un select
+    parEl.innerHTML = `
+      <span>Par</span>
+      <select
+        id="hole-par-select-${holeNumber}"
+        onchange="GameView.confirmHolePar(${holeNumber})"
+        onblur="GameView.confirmHolePar(${holeNumber})"
+        style="
+          font-size: var(--text-sm);
+          font-weight: var(--font-bold);
+          background: var(--bg-primary);
+          border: 2px solid var(--primary);
+          border-radius: var(--border-radius-sm);
+          padding: 2px 4px;
+          color: var(--primary);
+          cursor: pointer;
+          outline: none;
+        "
+      >
+        <option value="3" ${currentPar === 3 ? 'selected' : ''}>3</option>
+        <option value="4" ${currentPar === 4 ? 'selected' : ''}>4</option>
+        <option value="5" ${currentPar === 5 ? 'selected' : ''}>5</option>
+      </select>
+    `;
+
+    // Foco automático
+    const select = document.getElementById(`hole-par-select-${holeNumber}`);
+    if (select) select.focus();
+  },
+
+  /**
+   * Confirmar el par seleccionado y volver al badge estático
+   */
+  confirmHolePar(holeNumber) {
+    const select = document.getElementById(`hole-par-select-${holeNumber}`);
+    if (!select) return;
+
+    const newPar = parseInt(select.value);
+
+    // Restaurar badge estático con el nuevo valor
+    const parEl = document.getElementById(`hole-par-${holeNumber}`);
+    if (parEl) {
+      parEl.innerHTML = `
+        <span>Par</span>
+        <strong id="hole-par-value-${holeNumber}">${newPar}</strong>
+      `;
+    }
+
+    // Actualizar holesData con el nuevo par
+    const index = holeNumber - 1;
+    if (this.holesData[index]) {
+      this.holesData[index].par = newPar;
+    }
+
+    // Recalcular score del hoyo con el nuevo par
+    this.updateHoleScore(holeNumber);
+
+    Utils.showToast(`Hoyo ${holeNumber}: par corregido a ${newPar}`, 'info');
+  },
+
+  /**
    */
   async saveGame() {
     try {
@@ -280,7 +358,12 @@ const GameView = {
         if (strokes === 0) continue;
         
         const holeCard = strokesInput.closest('.hole-card');
-        const par = parseInt(holeCard.querySelector('.hole-par strong').textContent);
+        // Leer par — puede estar en modo select (edición) o badge estático
+        const parSelectEl = document.getElementById(`hole-par-select-${i}`);
+        const parValueEl  = document.getElementById(`hole-par-value-${i}`);
+        const par = parSelectEl
+          ? parseInt(parSelectEl.value)
+          : parseInt(parValueEl?.textContent || 4);
         
         // Leer estrellas desde botones activos
         const starsGroup = holeCard.querySelector('.hole-stars-toggle');
@@ -370,6 +453,10 @@ const GameView = {
       
       // Volver al dashboard
       GolfApp.navigate('dashboard');
+
+      // A1: Recargar datos del dashboard para reflejar la nueva partida
+      DashboardView.loadGames();
+      DashboardView.loadCourses();
 
       // Ofrecer añadir al hándicap (con pequeño delay para que el navigate termine)
       if (typeof HandicapView !== 'undefined' && gameDataForHcp.exact_index) {
@@ -476,7 +563,39 @@ const GameView = {
   },
   
   /**
-   * Resetear formulario y estado
+   * Enviar la partida actualmente abierta (en edición) al módulo de hándicap.
+   * Disponible tanto en modo edición como antes de guardar.
+   */
+  sendCurrentGameToHandicap() {
+    if (typeof HandicapView === 'undefined') {
+      Utils.showToast('Módulo de hándicap no disponible', 'error');
+      return;
+    }
+
+    const gameDate = document.getElementById('game-date').value;
+    if (!gameDate) {
+      Utils.showToast('Introduce la fecha de la partida primero', 'warning');
+      return;
+    }
+
+    // Calcular golpes totales desde el estado actual
+    const totalStrokes = this.holesData.reduce((s, h) => s + (h?.strokes || 0), 0);
+    const holesWithStrokes = this.holesData.filter(h => h?.strokes > 0).length;
+
+    HandicapView.promptAddFromGame({
+      id:             this.editingGameId || null,
+      game_date:      gameDate,
+      game_name:      document.getElementById('game-name').value.trim() || null,
+      course_name:    this.currentCourseObj?.name || null,
+      exact_index:    parseFloat(document.getElementById('game-exact-index').value) || null,
+      handicap_total: parseInt(document.getElementById('game-handicap').value) || 0,
+      total_strokes:  totalStrokes,
+      holes_played:   holesWithStrokes <= 9 ? 9 : 18,
+      courseObj:      this.currentCourseObj || null,
+    });
+  },
+
+  /**
    */
   reset() {
     console.log('🔄 Reseteando GameView');

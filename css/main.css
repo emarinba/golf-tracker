@@ -367,9 +367,15 @@ svg {
   stroke-width: 2;
 }
 
-/* FAB (botón central más grande) */
+/* FAB (botón central — siempre centrado independiente del número de ítems) */
 .mobile-nav-fab {
-  position: relative;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  /* Sin flex: 1 — no participa en el reparto de espacio */
+  flex: none;
 }
 
 .mobile-nav-fab svg {
@@ -380,10 +386,19 @@ svg {
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
   color: white;
   box-shadow: var(--shadow-md);
+  display: block;
 }
 
 .mobile-nav-fab:active svg {
   transform: scale(0.95);
+}
+
+/* Espaciador invisible que ocupa el lugar del FAB en el flujo flex
+   para que los ítems reales queden repartidos a izquierda y derecha */
+.mobile-nav-spacer {
+  flex: 1;
+  pointer-events: none;
+  visibility: hidden;
 }
 
 /* =====================================================================

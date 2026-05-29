@@ -46,7 +46,16 @@ const GolfApp = {
     await DashboardView.initialize();
     await CoursesView.initialize();
     await GameView.initialize();
-    await HandicapView.initialize();
+    if (typeof HandicapView !== 'undefined') {
+      await HandicapView.initialize();
+    } else {
+      console.warn('⚠️ HandicapView no disponible — verifica que js/views/handicap.js está cargado');
+    }
+    if (typeof StatsView !== 'undefined') {
+      await StatsView.initialize();
+    } else {
+      console.warn('⚠️ StatsView no disponible — verifica que js/views/stats.js está cargado');
+    }
   },
   
   /**
