@@ -95,9 +95,13 @@ const Components = {
         <div class="hole-card-header">
           <div class="hole-number">${holeNumber}</div>
           <div class="hole-info">
-            <div class="hole-par">
+            <div class="hole-par" 
+                 id="hole-par-${holeNumber}"
+                 ondblclick="GameView.editHolePar(${holeNumber})"
+                 title="Doble click para corregir el par"
+                 style="cursor:default">
               <span>Par</span>
-              <strong>${par}</strong>
+              <strong id="hole-par-value-${holeNumber}">${par}</strong>
             </div>
             <div class="hole-stars-editable">
               <span>★</span>

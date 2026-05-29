@@ -644,8 +644,7 @@ const SupabaseHandicap = {
         .from('handicap_rounds')
         .select('*')
         .eq('user_id', currentUser.id)
-        .order('round_date', { ascending: false })
-        .limit(20);
+        .order('round_date', { ascending: false });
 
       if (error) throw error;
       return { data, error: null };

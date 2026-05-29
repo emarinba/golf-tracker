@@ -281,24 +281,67 @@
                             <table class="handicap-table">
                                 <thead>
                                     <tr>
-                                        <th>#</th>
-                                        <th>FECHA</th>
-                                        <th>TORNEO</th>
-                                        <th>HOY</th>
-                                        <th>CR/SL/PAR</th>
-                                        <th>ÍNDICE</th>
-                                        <th>HCP</th>
-                                        <th>ASC</th>
-                                        <th>GROSS</th>
-                                        <th>STABL</th>
-                                        <th>SCORE DIFF</th>
-                                        <th>AJUSTE</th>
-                                        <th>SD FINAL</th>
+                                        <th data-col="row_num">#</th>
+                                        <th data-col="round_date" onclick="HandicapView.sortBy('round_date')">FECHA</th>
+                                        <th data-col="tournament_name" onclick="HandicapView.sortBy('tournament_name')">TORNEO</th>
+                                        <th data-col="holes" onclick="HandicapView.sortBy('holes')">HOY</th>
+                                        <th data-col="course_rating" onclick="HandicapView.sortBy('course_rating')">CR/SL/PAR</th>
+                                        <th data-col="exact_index" onclick="HandicapView.sortBy('exact_index')">ÍNDICE</th>
+                                        <th data-col="playing_hcp" onclick="HandicapView.sortBy('playing_hcp')">HCP</th>
+                                        <th data-col="asc_adjustment" onclick="HandicapView.sortBy('asc_adjustment')">ASC</th>
+                                        <th data-col="gross_adjusted" onclick="HandicapView.sortBy('gross_adjusted')">GROSS</th>
+                                        <th data-col="stableford_net" onclick="HandicapView.sortBy('stableford_net')">STABL</th>
+                                        <th data-col="score_diff" onclick="HandicapView.sortBy('score_diff')">SCORE DIFF</th>
+                                        <th data-col="total_adjustment" onclick="HandicapView.sortBy('total_adjustment')">AJUSTE</th>
+                                        <th data-col="sd_final" onclick="HandicapView.sortBy('sd_final')">SD FINAL</th>
                                         <th></th>
                                     </tr>
                                 </thead>
                                 <tbody id="handicap-rounds-body"></tbody>
                             </table>
+                        </div>
+                    </div>
+
+                    <!-- Histórico: rondas fuera de las 20 activas -->
+                    <div id="handicap-historical-wrapper" class="handicap-historical-wrapper hidden">
+                        <button class="handicap-historical-toggle" onclick="HandicapView.toggleHistorical()">
+                            <span class="historical-toggle-left">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                                <span id="historical-toggle-label">Ver histórico</span>
+                                <span class="historical-count-badge" id="handicap-historical-count">0</span>
+                                <span style="font-size:var(--text-xs);color:var(--text-tertiary);font-weight:var(--font-normal)">rondas fuera de las 20 activas</span>
+                            </span>
+                            <svg id="historical-toggle-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transition:transform .2s ease;flex-shrink:0">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
+                        <div id="handicap-historical-content" class="handicap-historical-content hidden">
+                            <div class="handicap-table-scroll">
+                                <table class="handicap-table handicap-table-historical">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>FECHA</th>
+                                            <th>TORNEO</th>
+                                            <th>HOY</th>
+                                            <th>CR/SL/PAR</th>
+                                            <th>ÍNDICE</th>
+                                            <th>HCP</th>
+                                            <th>ASC</th>
+                                            <th>GROSS</th>
+                                            <th>STABL</th>
+                                            <th>SCORE DIFF</th>
+                                            <th>AJUSTE</th>
+                                            <th>SD FINAL</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="handicap-historical-body"></tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
 

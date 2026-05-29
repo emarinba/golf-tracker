@@ -7,9 +7,15 @@
 
 const HandicapView = {
 
-  rounds: [],        // Todas las rondas cargadas (máx 20)
-  best8Ids: new Set(), // IDs de las 8 mejores rondas (en memoria)
-  handicapIndex: 0,  // Índice calculado
+  rounds: [],          // Últimas 20 por fecha (para cálculo y tabla principal)
+  historical: [],      // Rondas más antiguas (fuera de las 20, solo visualización)
+  best8Ids: new Set(), // IDs de las mejores rondas (en memoria)
+  handicapIndex: 0,
+
+  // Estado de ordenación de la tabla
+  sortColumn: 'round_date',   // columna activa
+  sortDirection: 'desc',      // 'asc' | 'desc'
+  historicalOpen: false,      // desplegable histórico
 
   // ===================================================================
   // 1. INICIALIZACIÓN
@@ -30,15 +36,20 @@ const HandicapView = {
 
       if (error) throw new Error(error);
 
-      // Ordenar por fecha descendente y tomar las últimas 20
-      this.rounds = (data || [])
-        .sort((a, b) => new Date(b.round_date) - new Date(a.round_date))
-        .slice(0, 20);
+      // Ordenar todas por fecha descendente
+      const all = (data || [])
+        .sort((a, b) => new Date(b.round_date) - new Date(a.round_date));
+
+      // Las 20 más recientes → cálculo de hándicap
+      this.rounds = all.slice(0, 20);
+
+      // El resto → histórico (ya no cuentan para el hándicap)
+      this.historical = all.slice(20);
 
       this.calculateHandicap();
       this.render();
 
-      console.log(`✅ ${this.rounds.length} rondas de hándicap cargadas`);
+      console.log(`✅ ${this.rounds.length} rondas activas, ${this.historical.length} históricas`);
 
     } catch (error) {
       console.error('❌ Error cargando rondas:', error);
@@ -114,6 +125,7 @@ const HandicapView = {
   render() {
     this.renderSummary();
     this.renderTable();
+    this.renderHistorical();
   },
 
   renderSummary() {
@@ -170,10 +182,148 @@ const HandicapView = {
     if (emptyEl)  emptyEl.classList.add('hidden');
     if (tableEl)  tableEl.classList.remove('hidden');
 
-    container.innerHTML = this.rounds.map((round, index) => {
+    // Aplicar ordenación visual (no afecta al cálculo del hándicap)
+    const sorted = this._sortedRounds(this.rounds);
+
+    // El número de fila refleja la posición original por fecha, no la ordenación actual
+    const positionMap = new Map(this.rounds.map((r, i) => [r.id, i + 1]));
+
+    container.innerHTML = sorted.map(round => {
       const isBest = this.best8Ids.has(round.id);
-      return this._renderRow(round, index + 1, isBest);
+      const rowNum = positionMap.get(round.id);
+      return this._renderRow(round, rowNum, isBest);
     }).join('');
+
+    // Actualizar indicadores visuales en cabeceras
+    this._updateSortHeaders();
+  },
+
+  /**
+   * Cambiar columna/dirección de ordenación y re-renderizar tabla
+   */
+  sortBy(column) {
+    if (this.sortColumn === column) {
+      // Misma columna → invertir dirección
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      // Números: desc por defecto (mayor primero). Fecha: desc. Texto: asc.
+      this.sortDirection = column === 'tournament_name' ? 'asc' : 'desc';
+    }
+    this.renderTable();
+  },
+
+  /**
+   * Ordenar array de rondas según sortColumn/sortDirection actuales
+   */
+  _sortedRounds(arr) {
+    const col = this.sortColumn;
+    const dir = this.sortDirection === 'asc' ? 1 : -1;
+
+    return [...arr].sort((a, b) => {
+      let va = a[col];
+      let vb = b[col];
+
+      // Columnas numéricas
+      const numericCols = ['holes', 'exact_index', 'playing_hcp', 'asc_adjustment',
+                           'gross_adjusted', 'stableford_net', 'score_diff',
+                           'total_adjustment', 'sd_final', 'course_rating', 'slope_rating'];
+      if (numericCols.includes(col)) {
+        va = parseFloat(va) || 0;
+        vb = parseFloat(vb) || 0;
+        return (va - vb) * dir;
+      }
+
+      // Fechas
+      if (col === 'round_date') {
+        return (new Date(va) - new Date(vb)) * dir;
+      }
+
+      // Texto
+      return String(va).localeCompare(String(vb), 'es') * dir;
+    });
+  },
+
+  /**
+   * Actualizar clases CSS en los <th> para mostrar flecha activa
+   */
+  _updateSortHeaders() {
+    document.querySelectorAll('.handicap-table thead th[data-col]').forEach(th => {
+      th.classList.remove('sort-asc', 'sort-desc');
+      if (th.dataset.col === this.sortColumn) {
+        th.classList.add(this.sortDirection === 'asc' ? 'sort-asc' : 'sort-desc');
+      }
+    });
+  },
+
+  /**
+   * Renderizar sección de histórico (rondas fuera de las 20 activas)
+   */
+  renderHistorical() {
+    const wrapperEl = document.getElementById('handicap-historical-wrapper');
+    const bodyEl    = document.getElementById('handicap-historical-body');
+    const countEl   = document.getElementById('handicap-historical-count');
+    const contentEl = document.getElementById('handicap-historical-content');
+
+    if (!wrapperEl) return;
+
+    if (this.historical.length === 0) {
+      wrapperEl.classList.add('hidden');
+      return;
+    }
+
+    wrapperEl.classList.remove('hidden');
+    if (countEl) countEl.textContent = this.historical.length;
+
+    // Mantener estado abierto/cerrado
+    if (contentEl) {
+      contentEl.classList.toggle('hidden', !this.historicalOpen);
+    }
+
+    if (!bodyEl) return;
+
+    // Histórico siempre ordenado por fecha desc (no afecta a la tabla principal)
+    const sorted = [...this.historical].sort(
+      (a, b) => new Date(b.round_date) - new Date(a.round_date)
+    );
+
+    bodyEl.innerHTML = sorted.map((round, i) => {
+      const crSlopePar = `${round.course_rating}/${round.slope_rating}/${round.par_value}`;
+      const canDelete  = round.source === 'tracker';
+      const deleteBtn  = canDelete
+        ? `<button class="row-action-btn" onclick="HandicapView.deleteRound('${round.id}')" title="Eliminar">🗑️</button>`
+        : `<span style="font-size:10px;color:var(--text-tertiary)" title="Importada">🔒</span>`;
+
+      return `
+        <tr class="historical-row" data-id="${round.id}">
+          <td><span class="row-number row-number-historical">${i + 1}</span></td>
+          <td>${Utils.formatDateShort(round.round_date)}</td>
+          <td>${Utils.sanitizeHTML(round.tournament_name)}</td>
+          <td>${round.holes}</td>
+          <td>${crSlopePar}</td>
+          <td>${parseFloat(round.exact_index).toFixed(1)}</td>
+          <td>${round.playing_hcp}</td>
+          <td>${round.asc_adjustment}</td>
+          <td>${round.gross_adjusted}</td>
+          <td>${round.stableford_net}</td>
+          <td>${parseFloat(round.score_diff).toFixed(1)}</td>
+          <td>${round.total_adjustment}</td>
+          <td>${parseFloat(round.sd_final).toFixed(1)}</td>
+          <td><div class="row-actions" style="opacity:1">${deleteBtn}</div></td>
+        </tr>
+      `;
+    }).join('');
+  },
+
+  toggleHistorical() {
+    this.historicalOpen = !this.historicalOpen;
+    const contentEl   = document.getElementById('handicap-historical-content');
+    const iconEl      = document.getElementById('historical-toggle-icon');
+    const labelEl     = document.getElementById('historical-toggle-label');
+
+    if (contentEl) contentEl.classList.toggle('hidden', !this.historicalOpen);
+    if (iconEl)    iconEl.style.transform = this.historicalOpen ? 'rotate(180deg)' : '';
+    if (labelEl)   labelEl.textContent = this.historicalOpen ? 'Ocultar histórico' : 'Ver histórico';
   },
 
   _renderRow(round, rowNum, isBest) {

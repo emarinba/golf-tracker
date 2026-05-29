@@ -555,8 +555,130 @@
 }
 
 /* =====================================================================
-   10. RESPONSIVE
+   11. ORDENACIÓN DE COLUMNAS
    ===================================================================== */
+
+.handicap-table thead th[data-col] {
+  cursor: default;
+}
+
+/* Solo los th con onclick son clicables */
+.handicap-table thead th[onclick] {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  padding-right: var(--space-5);
+}
+
+.handicap-table thead th[onclick]:hover {
+  background: var(--gray-200);
+  color: var(--text-primary);
+}
+
+/* Flecha de ordenación via pseudo-elemento */
+.handicap-table thead th[onclick]::after {
+  content: '↕';
+  position: absolute;
+  right: var(--space-2);
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px;
+  color: var(--text-tertiary);
+  transition: color var(--transition-fast);
+}
+
+.handicap-table thead th[onclick]:hover::after {
+  color: var(--text-secondary);
+}
+
+.handicap-table thead th.sort-asc::after {
+  content: '↑';
+  color: var(--primary);
+  font-weight: bold;
+}
+
+.handicap-table thead th.sort-desc::after {
+  content: '↓';
+  color: var(--primary);
+  font-weight: bold;
+}
+
+.handicap-table thead th.sort-asc,
+.handicap-table thead th.sort-desc {
+  color: var(--primary);
+  background: rgba(22, 163, 74, 0.06);
+}
+
+/* =====================================================================
+   12. SECCIÓN HISTÓRICO
+   ===================================================================== */
+
+.handicap-historical-wrapper {
+  margin-top: var(--space-4);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.handicap-historical-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  background: var(--bg-secondary);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-secondary);
+  transition: background var(--transition-fast);
+  gap: var(--space-3);
+}
+
+.handicap-historical-toggle:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.historical-toggle-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+  text-align: left;
+}
+
+.historical-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 var(--space-2);
+  background: var(--gray-400);
+  color: white;
+  border-radius: 999px;
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+}
+
+.handicap-historical-content {
+  border-top: 1px solid var(--border-color);
+}
+
+/* Filas históricas más apagadas */
+.handicap-table-historical tbody tr.historical-row {
+  opacity: 0.7;
+}
+
+.handicap-table-historical tbody tr.historical-row:hover {
+  opacity: 1;
+  background: var(--bg-secondary);
+}
+
+.row-number-historical {
+  background: var(--gray-300) !important;
+  color: var(--gray-600) !important;
+}
 
 @media (min-width: 640px) {
   .handicap-summary {
