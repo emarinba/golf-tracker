@@ -5,7 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#16a34a">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Golf Tracker">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <!-- Favicon pestaña del navegador -->
+    <link rel="icon" type="image/x-icon"            href="icons/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16"  href="icons/favicon-16.png">
+    <link rel="icon" type="image/png" sizes="32x32"  href="icons/favicon-32.png">
+    <link rel="icon" type="image/svg+xml"            href="icons/icon.svg">
+
+    <!-- iOS: icono al anclar en escritorio -->
+    <link rel="apple-touch-icon" sizes="180x180"    href="icons/apple-touch-icon.png">
+
+    <!-- Android/Chrome: manifiesto PWA -->
+    <link rel="manifest"                             href="icons/manifest.json">
+
     <title>Golf Tracker</title>
     
     <!-- Google Fonts -->
@@ -571,14 +586,21 @@
                         </div>
 
                         <div class="game-actions">
-                            <button class="btn-secondary btn-large" onclick="GolfApp.navigate('dashboard')">Cancelar</button>
+                            <button class="btn-secondary btn-large" onclick="GolfApp.navigate('dashboard')">
+                                <span class="btn-text-short">✕</span>
+                                <span class="btn-text-long">Cancelar</span>
+                            </button>
                             <button class="btn-secondary btn-large" id="send-hcp-btn"
                                 onclick="GameView.sendCurrentGameToHandicap()"
                                 title="Enviar esta partida al módulo de hándicap oficial"
                                 style="background:var(--accent);color:white;border-color:var(--accent)">
-                                📊 Hándicap
+                                <span class="btn-text-short">📊</span>
+                                <span class="btn-text-long">📊 Hándicap</span>
                             </button>
-                            <button class="btn-primary btn-large" id="save-game-btn" onclick="GameView.saveGame()">Guardar Partida</button>
+                            <button class="btn-primary btn-large" id="save-game-btn" onclick="GameView.saveGame()">
+                                <span class="btn-text-short">💾 Guardar</span>
+                                <span class="btn-text-long">Guardar Partida</span>
+                            </button>
                         </div>
                     </div>
                 </div>

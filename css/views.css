@@ -353,14 +353,39 @@
 
 .game-actions {
   display: flex;
-  gap: var(--space-3);
+  gap: var(--space-2);
   position: sticky;
   bottom: 0;
   background: var(--bg-secondary);
-  padding: var(--space-4);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow-lg);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--border-color);
+  box-shadow: 0 -4px 16px rgba(0,0,0,0.08);
   z-index: var(--z-sticky);
+}
+
+.game-actions button {
+  flex: 1;
+  min-width: 0;       /* Permite que flex comprima el contenido */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* En móvil: texto corto visible, texto largo oculto */
+.btn-text-short { display: inline; }
+.btn-text-long  { display: none;   }
+
+@media (min-width: 480px) {
+  .btn-text-short { display: none;   }
+  .btn-text-long  { display: inline; }
+
+  .game-actions {
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border-top: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+  }
 }
 
 /* =====================================================================

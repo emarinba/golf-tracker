@@ -147,6 +147,30 @@
 .handicap-table-scroll {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  /* Indicador sutil de que hay scroll disponible */
+  background:
+    linear-gradient(to right, var(--bg-primary) 20px, transparent 20px),
+    linear-gradient(to left,  var(--bg-primary) 20px, transparent 20px) 100% 0,
+    radial-gradient(farthest-side at 0 50%, rgba(0,0,0,0.10), transparent),
+    radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,0.10), transparent) 100% 0;
+  background-repeat: no-repeat;
+  background-size: 40px 100%, 40px 100%, 12px 100%, 12px 100%;
+  background-attachment: local, local, scroll, scroll;
+}
+
+/* Scrollbar visible pero discreta en desktop */
+.handicap-table-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+.handicap-table-scroll::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+}
+.handicap-table-scroll::-webkit-scrollbar-thumb {
+  background: var(--gray-300);
+  border-radius: 2px;
+}
+.handicap-table-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-400);
 }
 
 .handicap-table {

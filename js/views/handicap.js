@@ -618,22 +618,49 @@ const HandicapView = {
   },
 
   /**
-   * Calcular Score Diff en tiempo real cuando cambian CR/Slope/Gross en el modal
+   * Calcular Score Diff en tiempo real cuando cambian CR/Slope/Gross/ASC/Hoyos en el modal.
+   *
+   * Fórmula RFEG/WHS corregida:
+   *   18 hoyos: score_diff = (113 / slope) × (gross − asc − cr)
+   *             El ASC entra dentro del gross antes de aplicar la fórmula.
+   *             sd_final = score_diff  (el ASC ya está absorbido)
+   *
+   *    9 hoyos: score_diff = (gross − asc − cr) × 2
+   *             La RFEG no aplica el factor slope para 9h y multiplica ×2
+   *             para normalizar a 18 hoyos.
+   *             sd_final = score_diff
    */
   recalcFromGameModal() {
     const cr    = parseFloat(document.getElementById('hcp-game-cr').value);
     const slope = parseFloat(document.getElementById('hcp-game-slope').value);
     const gross = parseFloat(document.getElementById('hcp-game-gross').value);
     const asc   = parseInt(document.getElementById('hcp-game-asc').value) || 0;
+    const holes = parseInt(document.getElementById('hcp-game-holes-select').value) || 18;
 
-    if (!cr || !slope || !gross) {
+    if (!cr || !gross) {
       document.getElementById('hcp-game-score-diff').value = '';
       document.getElementById('hcp-game-sd-final').value   = '';
       return;
     }
 
-    const scoreDiff = Math.round((113 / slope) * (gross - cr) * 10) / 10;
-    const sdFinal   = Math.round((scoreDiff + asc) * 10) / 10;
+    // Para 18h también necesitamos slope
+    if (holes === 18 && !slope) {
+      document.getElementById('hcp-game-score-diff').value = '';
+      document.getElementById('hcp-game-sd-final').value   = '';
+      return;
+    }
+
+    let scoreDiff;
+    if (holes === 9) {
+      // RFEG 9 hoyos: (gross − asc − cr) × 2  [sin factor slope]
+      scoreDiff = Math.round((gross - asc - cr) * 2 * 10) / 10;
+    } else {
+      // RFEG 18 hoyos: (113 / slope) × (gross − asc − cr)
+      scoreDiff = Math.round((113 / slope) * (gross - asc - cr) * 10) / 10;
+    }
+
+    // sd_final = score_diff  (el ASC ya está absorbido en el cálculo)
+    const sdFinal = scoreDiff;
 
     document.getElementById('hcp-game-score-diff').value = scoreDiff.toFixed(1);
     document.getElementById('hcp-game-sd-final').value   = sdFinal.toFixed(1);
@@ -655,19 +682,33 @@ const HandicapView = {
     const sdFinal  = parseFloat(document.getElementById('hcp-game-sd-final').value);
     const holesStr = document.getElementById('hcp-game-holes-select').value;
 
-    if (!cr || !slope || !par || !index || !gross || isNaN(sdFinal)) {
+    // Para 9 hoyos no se requiere slope (fórmula RFEG no lo usa)
+    const holes = parseInt(holesStr);
+    if (!cr || (holes === 18 && !slope) || !par || !index || !gross || isNaN(sdFinal)) {
       Utils.showToast('Completa CR, Slope, Par, Índice y Gross para continuar', 'warning');
       return;
     }
 
-    const scoreDiff = Math.round((113 / slope) * (gross - cr) * 10) / 10;
+    // Recalcular score_diff con la fórmula RFEG correcta antes de guardar,
+    // por si el usuario modificó algún campo sin disparar recalcFromGameModal().
+    //   9 hoyos:  score_diff = (gross − asc − cr) × 2          [sin slope]
+    //   18 hoyos: score_diff = (113 / slope) × (gross − asc − cr)
+    // El ASC entra dentro del gross; sd_final = score_diff.
+    let scoreDiff;
+    if (holes === 9) {
+      scoreDiff = Math.round((gross - asc - cr) * 2 * 10) / 10;
+    } else {
+      scoreDiff = Math.round((113 / slope) * (gross - asc - cr) * 10) / 10;
+    }
+    const sdFinalCalc = scoreDiff; // sd_final = score_diff (ASC ya absorbido)
+
     const g = this._pendingGame;
 
     const round = {
       game_id:         g.id || null,
       round_date:      g.game_date,
       tournament_name: g.game_name || g.course_name || 'Partida tracker',
-      holes:           parseInt(holesStr),
+      holes:           holes,
       course_rating:   cr,
       slope_rating:    slope,
       par_value:       par,
@@ -678,7 +719,7 @@ const HandicapView = {
       stableford_net:  stabl,
       score_diff:      scoreDiff,
       total_adjustment: asc,
-      sd_final:        sdFinal,
+      sd_final:        sdFinalCalc,
     };
 
     const btn = document.getElementById('hcp-from-game-confirm-btn');

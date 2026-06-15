@@ -24,6 +24,15 @@ const StatsView = {
   async initialize() {
     console.log('📊 Inicializando estadísticas...');
     await this.loadAll();
+
+    // Redibujar gráfico al rotar pantalla o redimensionar ventana
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        if (this.hcpRounds.length >= 2) this.renderHcpChart();
+      }, 250);
+    });
   },
 
   async loadAll() {
@@ -143,6 +152,8 @@ const StatsView = {
     const hcpData = points.map(p => p.handicap);
     const sdData  = points.map(p => p.sd_final);
 
+    const isMobile = window.innerWidth < 640;
+
     // Destruir chart anterior si existe
     if (this.hcpChart) {
       this.hcpChart.destroy();
@@ -160,8 +171,8 @@ const StatsView = {
             data: hcpData,
             borderColor: '#16a34a',
             backgroundColor: 'rgba(22,163,74,0.08)',
-            borderWidth: 2.5,
-            pointRadius: 4,
+            borderWidth: isMobile ? 2 : 2.5,
+            pointRadius: isMobile ? 3 : 4,
             pointBackgroundColor: '#16a34a',
             pointBorderColor: '#fff',
             pointBorderWidth: 2,
@@ -174,9 +185,9 @@ const StatsView = {
             data: sdData,
             borderColor: '#f59e0b',
             backgroundColor: 'transparent',
-            borderWidth: 1.5,
+            borderWidth: isMobile ? 1 : 1.5,
             borderDash: [4, 3],
-            pointRadius: 3,
+            pointRadius: isMobile ? 2 : 3,
             pointBackgroundColor: '#f59e0b',
             fill: false,
             tension: 0.35,
@@ -192,12 +203,16 @@ const StatsView = {
           legend: {
             position: 'top',
             labels: {
-              font: { size: 11 },
+              font: { size: isMobile ? 10 : 11 },
               usePointStyle: true,
-              pointStyleWidth: 8
+              pointStyleWidth: 8,
+              boxHeight: 8,
+              padding: isMobile ? 8 : 12
             }
           },
           tooltip: {
+            titleFont: { size: 11 },
+            bodyFont:  { size: 11 },
             callbacks: {
               label: ctx => {
                 const v = ctx.parsed.y;
@@ -209,31 +224,31 @@ const StatsView = {
         scales: {
           x: {
             ticks: {
-              font: { size: 10 },
-              maxRotation: 45,
+              font: { size: isMobile ? 9 : 10 },
+              maxRotation: isMobile ? 60 : 45,
               autoSkip: true,
-              maxTicksLimit: 10
+              maxTicksLimit: isMobile ? 6 : 10
             },
             grid: { display: false }
           },
           yHcp: {
             position: 'left',
             title: {
-              display: true,
+              display: !isMobile,
               text: 'Índice',
               font: { size: 10 }
             },
-            ticks: { font: { size: 10 } },
+            ticks: { font: { size: isMobile ? 9 : 10 } },
             grid: { color: 'rgba(0,0,0,0.05)' }
           },
           ySd: {
             position: 'right',
             title: {
-              display: true,
+              display: !isMobile,
               text: 'SD',
               font: { size: 10 }
             },
-            ticks: { font: { size: 10 } },
+            ticks: { font: { size: isMobile ? 9 : 10 } },
             grid: { display: false }
           }
         }
