@@ -343,19 +343,23 @@ const GameView = {
       
       console.log('🎯 Hoyos con golpes:', holesWithStrokes);
       
-      if (holesWithStrokes === 0) {
+      // En modo nueva partida: se requiere al menos 1 hoyo con golpes
+      // En modo edición: se permite guardar cambios de estrellas sin golpes
+      if (!this.editingGameId && holesWithStrokes === 0) {
         Utils.showToast('Por favor introduce los golpes de al menos un hoyo', 'warning');
         return;
       }
       
-      // Recopilar solo los hoyos con golpes (filtrar vacíos para BD)
+      // Recopilar hoyos: en edición se guardan todos los cambios, en nueva se guardan solo con golpes
       const holes = [];
       for (let i = 1; i <= 18; i++) {
         const strokesInput = document.getElementById(`strokes-${i}`);
         const strokes = parseInt(strokesInput.value) || 0;
         
-        // Solo incluir hoyos con golpes > 0
-        if (strokes === 0) continue;
+        // En modo nueva partida: solo incluir hoyos con golpes > 0
+        if (!this.editingGameId && strokes === 0) {
+          continue;
+        }
         
         const holeCard = strokesInput.closest('.hole-card');
         // Leer par — puede estar en modo select (edición) o badge estático
