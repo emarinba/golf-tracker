@@ -105,6 +105,81 @@ const DashboardView = {
     
     this.render();
   },
+
+  /**
+   * Calcular resumen rápido para el dashboard
+   */
+  getSummaryStats() {
+    const sortedGames = [...this.games].sort((a, b) => new Date(b.game_date) - new Date(a.game_date));
+
+    const totalGames = sortedGames.length;
+    const totalStrokes = sortedGames.reduce((sum, game) => {
+      const strokes = game.holes?.reduce((acc, hole) => acc + (hole.strokes || 0), 0) || 0;
+      return sum + strokes;
+    }, 0);
+
+    const averageScore = totalGames > 0 ? Math.round(totalStrokes / totalGames) : 0;
+
+    const bestGame = sortedGames.reduce((best, game) => {
+      const strokes = game.holes?.reduce((acc, hole) => acc + (hole.strokes || 0), 0) || 0;
+      if (!best || strokes < best.strokes) {
+        return { strokes, game };
+      }
+      return best;
+    }, null);
+
+    const latestGame = sortedGames[0] || null;
+
+    return {
+      totalGames,
+      averageScore,
+      bestGame,
+      latestGame
+    };
+  },
+
+  /**
+   * Renderizar resumen del dashboard
+   */
+  renderSummary() {
+    const container = document.getElementById('dashboard-summary');
+    if (!container) return;
+
+    const stats = this.getSummaryStats();
+
+    if (stats.totalGames === 0) {
+      container.innerHTML = `
+        <div class="summary-card summary-card-empty">
+          <h3>Resumen</h3>
+          <p>Aún no hay partidas para mostrar. Registra tu primera ronda y aquí verás tu progreso.</p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="summary-card">
+        <span class="summary-label">Partidas</span>
+        <strong class="summary-value">${stats.totalGames}</strong>
+        <small class="summary-meta">registradas</small>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">Promedio</span>
+        <strong class="summary-value">${stats.averageScore}</strong>
+        <small class="summary-meta">golpes por ronda</small>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">Mejor ronda</span>
+        <strong class="summary-value">${stats.bestGame ? stats.bestGame.strokes : 0}</strong>
+        <small class="summary-meta">${stats.bestGame ? (stats.bestGame.game.courses?.name || 'Sin campo') : 'Sin datos'}</small>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">Última partida</span>
+        <strong class="summary-value">${stats.latestGame ? Utils.formatDate(stats.latestGame.game_date) : '—'}</strong>
+        <small class="summary-meta">${stats.latestGame ? (stats.latestGame.courses?.name || 'Sin campo') : 'Aún no hay datos'}</small>
+      </div>
+    `;
+  },
   
   /**
    * Limpiar filtros
@@ -133,6 +208,8 @@ const DashboardView = {
     const noResultsState = document.getElementById('no-results-state');
     
     if (!container) return;
+
+    this.renderSummary();
     
     // Si no hay partidas en absoluto
     if (this.allGames.length === 0) {
