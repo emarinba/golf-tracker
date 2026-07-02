@@ -150,12 +150,18 @@ const GameView = {
     const defaultPars = [4, 4, 3, 4, 5, 3, 4, 4, 5, 4, 4, 3, 4, 5, 3, 4, 4, 5];
     const previousHoles = [...this.holesData];
 
+    const hasCourseConfig = Array.isArray(courseHoles) && courseHoles.length > 0;
+
     container.innerHTML = Array.from({ length: 18 }, (_, i) => {
       const holeNumber = i + 1;
       const savedHole = previousHoles[i];
       const hole = courseHoles.find(h => h.hole_number === holeNumber);
-      const par = savedHole?.par || hole?.par || defaultPars[i];
-      const stars = savedHole?.stars ?? hole?.stars ?? 0;
+      const par = hasCourseConfig
+        ? (hole?.par ?? savedHole?.par ?? defaultPars[i])
+        : (savedHole?.par ?? hole?.par ?? defaultPars[i]);
+      const stars = hasCourseConfig
+        ? (hole?.stars ?? savedHole?.stars ?? 0)
+        : (savedHole?.stars ?? hole?.stars ?? 0);
       const strokes = savedHole?.strokes || '';
       
       return Components.renderHoleCard(holeNumber, par, stars, strokes);
@@ -167,8 +173,12 @@ const GameView = {
       const holeNumber = i + 1;
       const savedHole = previousHoles[i];
       const hole = courseHoles.find(h => h.hole_number === holeNumber);
-      const par   = savedHole?.par || hole?.par || defaultPars[i];
-      const stars = savedHole?.stars ?? hole?.stars ?? 0;
+      const par = hasCourseConfig
+        ? (hole?.par ?? savedHole?.par ?? defaultPars[i])
+        : (savedHole?.par ?? hole?.par ?? defaultPars[i]);
+      const stars = hasCourseConfig
+        ? (hole?.stars ?? savedHole?.stars ?? 0)
+        : (savedHole?.stars ?? hole?.stars ?? 0);
       const strokes = savedHole?.strokes || 0;
       const { scr, hcp } = strokes > 0
         ? Utils.calculatePoints(par, stars, strokes)
