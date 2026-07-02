@@ -89,7 +89,7 @@ const DashboardView = {
       console.error('Error cargando campos:', error);
       Utils.showToast('⚠️ Error al cargar campos', 'warning');
     }
-  }
+  },
   
   /**
    * Poblar select de campos en filtro
