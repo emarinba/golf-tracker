@@ -162,6 +162,7 @@ const Components = {
    */
   renderHoleCard(holeNumber, par = 4, stars = 0, strokes = '') {
     const { scr, hcp } = Utils.calculatePoints(par, stars, strokes);
+    const hasStrokes = Number(strokes) > 0;
     
     return `
       <div class="hole-card">
@@ -191,16 +192,21 @@ const Components = {
         <div class="hole-card-body">
           <div class="hole-strokes-input">
             <label>Golpes</label>
-            <input 
-              type="number" 
-              id="strokes-${holeNumber}"
-              data-hole="${holeNumber}"
-              min="1" 
-              max="20" 
-              value="${strokes}"
-              oninput="GameView.updateHoleScore(${holeNumber})"
-              placeholder="-"
-            >
+            <div class="hole-strokes-quick-actions">
+              <button type="button" class="stroke-quick-btn" onclick="Components.adjustHoleStrokes(${holeNumber}, -1)">−</button>
+              <input 
+                type="number" 
+                id="strokes-${holeNumber}"
+                data-hole="${holeNumber}"
+                min="1" 
+                max="20" 
+                value="${strokes}"
+                oninput="GameView.updateHoleScore(${holeNumber})"
+                placeholder="-"
+              >
+              <button type="button" class="stroke-quick-btn" onclick="Components.adjustHoleStrokes(${holeNumber}, 1)">+</button>
+            </div>
+            <div class="hole-strokes-helper">${hasStrokes ? 'Listo para seguir' : 'Pulsa + o escribe un número'}</div>
           </div>
           
           <div class="hole-score">
@@ -236,6 +242,22 @@ const Components = {
     }
     
     // Recalcular puntos del hoyo
+    if (typeof GameView !== 'undefined') {
+      GameView.updateHoleScore(holeNumber);
+    }
+  },
+
+  /**
+   * Ajustar golpes de un hoyo con botones rápidos
+   */
+  adjustHoleStrokes(holeNumber, delta) {
+    const input = document.getElementById(`strokes-${holeNumber}`);
+    if (!input) return;
+
+    const current = parseInt(input.value || '0', 10);
+    const nextValue = Math.max(0, Math.min(20, current + delta));
+    input.value = nextValue;
+
     if (typeof GameView !== 'undefined') {
       GameView.updateHoleScore(holeNumber);
     }
