@@ -180,17 +180,30 @@
   gap: var(--space-3);
 }
 
+.skeleton-card-title,
+.skeleton-card-subtitle,
+.skeleton-card-meta-item,
+.skeleton-score-label,
+.skeleton-score-value,
+.skeleton-summary-label,
+.skeleton-summary-value,
+.skeleton-summary-meta {
+  display: block;
+  background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-secondary) 50%, var(--bg-tertiary) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: var(--border-radius-sm);
+}
+
 .skeleton-card-title {
   height: 24px;
   width: 60%;
-  skeleton;
   margin-bottom: var(--space-2);
 }
 
 .skeleton-card-subtitle {
   height: 16px;
   width: 80%;
-  skeleton;
   margin-bottom: var(--space-1);
 }
 
@@ -203,7 +216,6 @@
 .skeleton-card-meta-item {
   height: 14px;
   width: 70%;
-  skeleton;
 }
 
 .skeleton-card-scores {
@@ -223,14 +235,12 @@
 .skeleton-score-label {
   height: 12px;
   width: 50%;
-  skeleton;
   margin: 0 auto var(--space-1);
 }
 
 .skeleton-score-value {
   height: 32px;
   width: 60%;
-  skeleton;
   margin: 0 auto;
 }
 
@@ -252,27 +262,23 @@
 .skeleton-summary-label {
   height: 12px;
   width: 70%;
-  skeleton;
   margin-bottom: var(--space-2);
 }
 
 .skeleton-summary-value {
   height: 28px;
   width: 50%;
-  skeleton;
   margin-bottom: var(--space-1);
 }
 
 .skeleton-summary-meta {
   height: 12px;
   width: 60%;
-  skeleton;
 }
 
 /* =====================================================================
    3. CARDS
    ===================================================================== */
-.skeleton {
 
 .card {
   background: var(--bg-primary);
@@ -307,12 +313,13 @@
    ===================================================================== */
 
 .game-card {
-  background: var(--bg-primary);
-  border-radius: var(--border-radius);
-  border: 1px solid var(--border-color);
+  background: linear-gradient(135deg, var(--bg-primary) 0%, #fcfdfd 100%);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid rgba(22, 163, 74, 0.14);
   padding: var(--space-5);
   transition: all var(--transition-fast);
   cursor: pointer;
+  box-shadow: var(--shadow-sm);
 }
 
 .game-card:hover {
@@ -455,11 +462,12 @@
    ===================================================================== */
 
 .course-card {
-  background: var(--bg-primary);
-  border-radius: var(--border-radius);
-  border: 1px solid var(--border-color);
+  background: linear-gradient(135deg, var(--bg-primary) 0%, #f8fffb 100%);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid rgba(22, 163, 74, 0.12);
   padding: var(--space-5);
   transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
 }
 
 .course-card:hover {
@@ -506,13 +514,17 @@
 .empty-state {
   text-align: center;
   padding: var(--space-12) var(--space-4);
+  background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(248,250,252,0.9));
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
 }
 
 .empty-icon {
   font-size: 4rem;
   line-height: 1;
   margin-bottom: var(--space-4);
-  opacity: 0.5;
+  opacity: 0.75;
 }
 
 .empty-title {
@@ -603,11 +615,12 @@
    ===================================================================== */
 
 .filters-section {
-  background: var(--bg-primary);
-  border-radius: var(--border-radius);
+  background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(248,250,252,0.95));
+  border-radius: var(--border-radius-lg);
   padding: var(--space-4);
   margin-bottom: var(--space-6);
-  border: 1px solid var(--border-color);
+  border: 1px solid rgba(22, 163, 74, 0.12);
+  box-shadow: var(--shadow-sm);
 }
 
 .filters-row {
@@ -633,10 +646,11 @@
 .filter-input {
   padding: var(--space-2) var(--space-3);
   font-size: var(--text-sm);
-  background: var(--bg-secondary);
+  background: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   transition: all var(--transition-fast);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.04);
 }
 
 .filter-input:focus {
