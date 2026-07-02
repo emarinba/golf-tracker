@@ -84,9 +84,13 @@ const GolfApp = {
     // CRÍTICO: Resetear GameView SOLO si navegamos a 'game' SIN estar en modo edición
     // La edición se marca ANTES de navegar, por eso comprobamos aquí
     if (viewName === 'game') {
-      // Si NO hay editingGameId, es una NUEVA partida -> resetear
+      // Si NO hay editingGameId, es una NUEVA partida -> restaurar borrador o resetear
       if (!GameView.editingGameId) {
-        GameView.reset();
+        if (GameView.hasDraft()) {
+          GameView.restoreDraft();
+        } else {
+          GameView.reset();
+        }
       }
       // Si SÍ hay editingGameId, ya se cargó con loadGameForEdit() -> no resetear
     }

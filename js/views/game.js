@@ -8,6 +8,7 @@ const GameView = {
   editingGameId: null,
   currentCourseId: null,
   holesData: [],
+  draftStorageKey: 'golf-tracker-game-draft-v1',
   
   /**
    * Inicializar vista
@@ -15,14 +16,61 @@ const GameView = {
   async initialize() {
     console.log('🎮 Inicializando vista de juego...');
     
+    this.bindFormEvents();
+    
     // Cargar campos para el combo
     await this.loadCourses();
     
-    // Establecer fecha actual
-    document.getElementById('game-date').value = Utils.getTodayDate();
+    // Establecer fecha actual si está vacía
+    const gameDateEl = document.getElementById('game-date');
+    if (gameDateEl && !gameDateEl.value) {
+      gameDateEl.value = Utils.getTodayDate();
+    }
     
-    // Renderizar hoyos vacíos
-    this.renderHoles();
+    // Restaurar borrador si existe, o renderizar hoyos vacíos
+    if (this.hasDraft()) {
+      this.restoreDraft(false);
+    } else {
+      this.renderHoles();
+    }
+  },
+
+  /**
+   * Vincular eventos de formulario para autosave
+   */
+  bindFormEvents() {
+    const courseSelect = document.getElementById('game-course-select');
+    const gameDate = document.getElementById('game-date');
+    const gameName = document.getElementById('game-name');
+    const handicap = document.getElementById('game-handicap');
+    const exactIndex = document.getElementById('game-exact-index');
+
+    if (courseSelect && !courseSelect.dataset.bound) {
+      courseSelect.addEventListener('change', () => {
+        this.onCourseChange();
+      });
+      courseSelect.dataset.bound = 'true';
+    }
+
+    if (gameDate && !gameDate.dataset.bound) {
+      gameDate.addEventListener('change', () => this.saveDraft());
+      gameDate.dataset.bound = 'true';
+    }
+
+    if (gameName && !gameName.dataset.bound) {
+      gameName.addEventListener('input', () => this.saveDraft());
+      gameName.dataset.bound = 'true';
+    }
+
+    if (handicap && !handicap.dataset.bound) {
+      handicap.addEventListener('input', () => this.saveDraft());
+      handicap.dataset.bound = 'true';
+    }
+
+    if (exactIndex && !exactIndex.dataset.bound) {
+      exactIndex.addEventListener('input', () => this.saveDraft());
+      exactIndex.dataset.bound = 'true';
+    }
   },
   
   /**
@@ -62,7 +110,9 @@ const GameView = {
     if (!courseId) {
       // Sin campo → valores por defecto
       this.currentCourseId = null;
+      this.currentCourseObj = null;
       this.renderHoles();
+      this.saveDraft();
       return;
     }
     
@@ -80,6 +130,7 @@ const GameView = {
       // PRE-CARGAR par y estrellas de cada hoyo
       const holes = course.course_holes || [];
       this.renderHoles(holes);
+      this.saveDraft();
       
       Utils.showToast(`Campo "${course.name}" cargado`, 'success');
       
@@ -97,16 +148,15 @@ const GameView = {
     if (!container) return;
     
     const defaultPars = [4, 4, 3, 4, 5, 3, 4, 4, 5, 4, 4, 3, 4, 5, 3, 4, 4, 5];
-    
-    // Preservar golpes ya introducidos si los hay
-    const prevStrokes = this.holesData.map(h => h?.strokes || 0);
+    const previousHoles = [...this.holesData];
 
     container.innerHTML = Array.from({ length: 18 }, (_, i) => {
       const holeNumber = i + 1;
+      const savedHole = previousHoles[i];
       const hole = courseHoles.find(h => h.hole_number === holeNumber);
-      const par = hole?.par || defaultPars[i];
-      const stars = hole?.stars || 0;
-      const strokes = prevStrokes[i] || '';
+      const par = savedHole?.par || hole?.par || defaultPars[i];
+      const stars = savedHole?.stars ?? hole?.stars ?? 0;
+      const strokes = savedHole?.strokes || '';
       
       return Components.renderHoleCard(holeNumber, par, stars, strokes);
     }).join('');
@@ -115,10 +165,11 @@ const GameView = {
     // Sin esto, las estrellas no se guardan si el usuario no toca los golpes.
     this.holesData = Array.from({ length: 18 }, (_, i) => {
       const holeNumber = i + 1;
+      const savedHole = previousHoles[i];
       const hole = courseHoles.find(h => h.hole_number === holeNumber);
-      const par   = hole?.par   || defaultPars[i];
-      const stars = hole?.stars || 0;
-      const strokes = prevStrokes[i] || 0;
+      const par   = savedHole?.par || hole?.par || defaultPars[i];
+      const stars = savedHole?.stars ?? hole?.stars ?? 0;
+      const strokes = savedHole?.strokes || 0;
       const { scr, hcp } = strokes > 0
         ? Utils.calculatePoints(par, stars, strokes)
         : { scr: 0, hcp: 0 };
@@ -316,8 +367,117 @@ const GameView = {
 
     // Recalcular score del hoyo con el nuevo par
     this.updateHoleScore(holeNumber);
+    this.saveDraft();
 
     Utils.showToast(`Hoyo ${holeNumber}: par corregido a ${newPar}`, 'info');
+  },
+
+  /**
+   * Guardar borrador actual en localStorage
+   */
+  saveDraft() {
+    try {
+      const draft = {
+        version: 1,
+        fields: {
+          courseId: document.getElementById('game-course-select')?.value || '',
+          gameDate: document.getElementById('game-date')?.value || '',
+          gameName: document.getElementById('game-name')?.value || '',
+          handicap: document.getElementById('game-handicap')?.value || '20',
+          exactIndex: document.getElementById('game-exact-index')?.value || ''
+        },
+        currentCourseId: this.currentCourseId,
+        currentCourseObj: this.currentCourseObj ? {
+          id: this.currentCourseObj.id,
+          name: this.currentCourseObj.name
+        } : null,
+        holesData: this.holesData
+      };
+
+      localStorage.setItem(this.draftStorageKey, JSON.stringify(draft));
+    } catch (error) {
+      console.warn('No se pudo guardar el borrador:', error);
+    }
+  },
+
+  /**
+   * Limpiar borrador guardado
+   */
+  clearDraft() {
+    try {
+      localStorage.removeItem(this.draftStorageKey);
+    } catch (error) {
+      console.warn('No se pudo limpiar el borrador:', error);
+    }
+  },
+
+  /**
+   * Comprobar si existe un borrador guardado
+   */
+  hasDraft() {
+    try {
+      return Boolean(localStorage.getItem(this.draftStorageKey));
+    } catch (error) {
+      console.warn('No se pudo leer el borrador:', error);
+      return false;
+    }
+  },
+
+  /**
+   * Recuperar borrador guardado
+   */
+  restoreDraft(showToast = true) {
+    try {
+      const raw = localStorage.getItem(this.draftStorageKey);
+      if (!raw) return false;
+
+      const draft = JSON.parse(raw);
+      if (!draft || !Array.isArray(draft.holesData)) return false;
+
+      this.editingGameId = null;
+      this.currentCourseId = draft.currentCourseId || draft.fields?.courseId || null;
+      this.currentCourseObj = draft.currentCourseObj || null;
+      this.holesData = draft.holesData.map((hole, index) => ({
+        ...hole,
+        hole_number: hole.hole_number || index + 1
+      }));
+
+      const courseSelect = document.getElementById('game-course-select');
+      if (courseSelect) {
+        courseSelect.value = draft.fields?.courseId || '';
+      }
+
+      const gameDate = document.getElementById('game-date');
+      if (gameDate) {
+        gameDate.value = draft.fields?.gameDate || Utils.getTodayDate();
+      }
+
+      const gameName = document.getElementById('game-name');
+      if (gameName) {
+        gameName.value = draft.fields?.gameName || '';
+      }
+
+      const handicap = document.getElementById('game-handicap');
+      if (handicap) {
+        handicap.value = draft.fields?.handicap || '20';
+      }
+
+      const exactIndex = document.getElementById('game-exact-index');
+      if (exactIndex) {
+        exactIndex.value = draft.fields?.exactIndex || '';
+      }
+
+      this.renderHolesWithData(this.holesData);
+
+      if (showToast) {
+        Utils.showToast('Borrador recuperado', 'success');
+      }
+
+      return true;
+    } catch (error) {
+      console.warn('No se pudo recuperar el borrador:', error);
+      return false;
+    }
   },
 
   /**
@@ -437,6 +597,8 @@ const GameView = {
         btn.classList.remove('loading');
       }
 
+      this.clearDraft();
+
       // Preguntar si añadir al hándicap oficial
       const savedGame = result.data;
       const holesCount = holes.length;
@@ -481,6 +643,7 @@ const GameView = {
    */
   loadGameForEdit(game) {
     console.log('✏️ Cargando partida para editar:', game.id);
+    this.clearDraft();
     console.log('📊 Datos de la partida:', {
       id: game.id,
       fecha: game.game_date,
@@ -599,6 +762,7 @@ const GameView = {
    */
   reset() {
     console.log('🔄 Reseteando GameView');
+    this.clearDraft();
     
     // CRÍTICO: Limpiar estado de edición
     this.editingGameId = null;
