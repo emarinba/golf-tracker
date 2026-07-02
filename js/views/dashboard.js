@@ -19,8 +19,32 @@ const DashboardView = {
    */
   async initialize() {
     console.log('📊 Inicializando dashboard...');
-    await this.loadGames();
-    await this.loadCourses();
+    this.showLoadingState();
+    try {
+      await Promise.all([
+        this.loadGames(),
+        this.loadCourses()
+      ]);
+    } finally {
+      this.hideLoadingState();
+    }
+  },
+
+  /**
+   * Mostrar estado de carga (skeletons)
+   */
+  showLoadingState() {
+    const summaryContainer = document.getElementById('dashboard-summary');
+    const gamesContainer = document.getElementById('games-list');
+    if (summaryContainer) summaryContainer.innerHTML = Components.renderSummarySkeleton();
+    if (gamesContainer) gamesContainer.innerHTML = Components.renderGameCardSkeletons(3);
+  },
+
+  /**
+   * Ocultar estado de carga
+   */
+  hideLoadingState() {
+    // Se reemplaza automáticamente cuando render() se ejecuta
   },
   
   /**
@@ -42,7 +66,10 @@ const DashboardView = {
       
     } catch (error) {
       console.error('❌ Error cargando partidas:', error);
-      Utils.showToast('Error al cargar partidas', 'error');
+      Utils.showToast('⚠️ Error al cargar partidas. Verifica tu conexión.', 'error');
+      // Mostrar estado vacío en caso de error
+      const container = document.getElementById('games-list');
+      if (container) container.innerHTML = '<div class="empty-state"><p>Error al cargar partidas. Por favor intenta de nuevo.</p></div>';
     }
   },
   
@@ -60,8 +87,9 @@ const DashboardView = {
       
     } catch (error) {
       console.error('Error cargando campos:', error);
+      Utils.showToast('⚠️ Error al cargar campos', 'warning');
     }
-  },
+  }
   
   /**
    * Poblar select de campos en filtro

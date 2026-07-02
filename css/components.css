@@ -145,8 +145,134 @@
 }
 
 /* =====================================================================
-   2. CARDS
+   2. SKELETON LOADERS
    ===================================================================== */
+
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-secondary) 50%, var(--bg-tertiary) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: var(--border-radius-sm);
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-sm);
+}
+
+.skeleton-card-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+  gap: var(--space-3);
+}
+
+.skeleton-card-title {
+  height: 24px;
+  width: 60%;
+  skeleton;
+  margin-bottom: var(--space-2);
+}
+
+.skeleton-card-subtitle {
+  height: 16px;
+  width: 80%;
+  skeleton;
+  margin-bottom: var(--space-1);
+}
+
+.skeleton-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.skeleton-card-meta-item {
+  height: 14px;
+  width: 70%;
+  skeleton;
+}
+
+.skeleton-card-scores {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  padding: var(--space-4);
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius-sm);
+}
+
+.skeleton-card-score {
+  text-align: center;
+}
+
+.skeleton-score-label {
+  height: 12px;
+  width: 50%;
+  skeleton;
+  margin: 0 auto var(--space-1);
+}
+
+.skeleton-score-value {
+  height: 32px;
+  width: 60%;
+  skeleton;
+  margin: 0 auto;
+}
+
+.skeleton-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.skeleton-summary-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-sm);
+}
+
+.skeleton-summary-label {
+  height: 12px;
+  width: 70%;
+  skeleton;
+  margin-bottom: var(--space-2);
+}
+
+.skeleton-summary-value {
+  height: 28px;
+  width: 50%;
+  skeleton;
+  margin-bottom: var(--space-1);
+}
+
+.skeleton-summary-meta {
+  height: 12px;
+  width: 60%;
+  skeleton;
+}
+
+/* =====================================================================
+   3. CARDS
+   ===================================================================== */
+.skeleton {
 
 .card {
   background: var(--bg-primary);

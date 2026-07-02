@@ -6,6 +6,79 @@
 const Components = {
   
   /**
+   * Renderizar skeleton loader de partida
+   */
+  renderGameCardSkeleton() {
+    return `
+      <div class="game-card skeleton-card">
+        <div class="game-card-header">
+          <div class="game-card-info" style="flex: 1;">
+            <div class="skeleton-card-title"></div>
+            <div class="skeleton-card-meta">
+              <div class="skeleton-card-meta-item"></div>
+              <div class="skeleton-card-meta-item"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="game-card-scores">
+          <div class="game-card-score">
+            <div class="skeleton-score-label"></div>
+            <div class="skeleton-score-value"></div>
+          </div>
+          <div class="game-card-score">
+            <div class="skeleton-score-label"></div>
+            <div class="skeleton-score-value"></div>
+          </div>
+        </div>
+        
+        <div class="game-card-actions" style="opacity: 0.5;">
+          <button class="game-card-action-view" disabled style="height: 40px; background: var(--bg-tertiary);"></button>
+          <button class="game-card-action-edit" disabled style="height: 40px; background: var(--bg-tertiary);"></button>
+          <button class="game-card-action-hcp" disabled style="height: 40px; background: var(--bg-tertiary);"></button>
+        </div>
+      </div>
+    `;
+  },
+
+  /**
+   * Renderizar grid de skeletons
+   */
+  renderGameCardSkeletons(count = 3) {
+    return Array(count).fill(0).map(() => this.renderGameCardSkeleton()).join('');
+  },
+
+  /**
+   * Renderizar skeleton de resumen
+   */
+  renderSummarySkeleton() {
+    return `
+      <div class="skeleton-summary-grid">
+        <div class="skeleton-summary-card">
+          <div class="skeleton-summary-label"></div>
+          <div class="skeleton-summary-value"></div>
+          <div class="skeleton-summary-meta"></div>
+        </div>
+        <div class="skeleton-summary-card">
+          <div class="skeleton-summary-label"></div>
+          <div class="skeleton-summary-value"></div>
+          <div class="skeleton-summary-meta"></div>
+        </div>
+        <div class="skeleton-summary-card">
+          <div class="skeleton-summary-label"></div>
+          <div class="skeleton-summary-value"></div>
+          <div class="skeleton-summary-meta"></div>
+        </div>
+        <div class="skeleton-summary-card">
+          <div class="skeleton-summary-label"></div>
+          <div class="skeleton-summary-value"></div>
+          <div class="skeleton-summary-meta"></div>
+        </div>
+      </div>
+    `;
+  },
+  
+  /**
    * Renderizar card de partida en dashboard
    */
   renderGameCard(game) {
