@@ -275,6 +275,17 @@
   box-shadow: var(--shadow-md);
 }
 
+.summary-card-action {
+  cursor: pointer;
+  border-color: rgba(22, 163, 74, 0.24);
+  background: linear-gradient(135deg, rgba(22, 163, 74, 0.1) 0%, rgba(255,255,255,0.98) 100%);
+}
+
+.summary-card-action:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
 .summary-card-empty {
   grid-column: 1 / -1;
   text-align: center;

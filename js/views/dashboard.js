@@ -174,18 +174,24 @@ const DashboardView = {
     if (!container) return;
 
     const stats = this.getSummaryStats();
+    const hasDraft = localStorage.getItem('golf-tracker-game-draft-v1');
 
     if (stats.totalGames === 0) {
       container.innerHTML = `
         <div class="summary-card summary-card-empty">
-          <h3>Resumen</h3>
-          <p>Aún no hay partidas para mostrar. Registra tu primera ronda y aquí verás tu progreso.</p>
+          <h3>Tu próxima ronda</h3>
+          <p>Empieza por registrar tu primera partida y conviértela en un hábito.</p>
         </div>
       `;
       return;
     }
 
     container.innerHTML = `
+      <div class="summary-card summary-card-action">
+        <span class="summary-label">Acción rápida</span>
+        <strong class="summary-value">${hasDraft ? 'Continuar' : 'Nueva ronda'}</strong>
+        <small class="summary-meta">${hasDraft ? 'Reanuda tu borrador guardado' : 'Registra una partida nueva'}</small>
+      </div>
       <div class="summary-card">
         <span class="summary-label">Partidas</span>
         <strong class="summary-value">${stats.totalGames}</strong>
@@ -195,11 +201,6 @@ const DashboardView = {
         <span class="summary-label">Promedio</span>
         <strong class="summary-value">${stats.averageScore}</strong>
         <small class="summary-meta">golpes por ronda</small>
-      </div>
-      <div class="summary-card">
-        <span class="summary-label">Mejor ronda</span>
-        <strong class="summary-value">${stats.bestGame ? stats.bestGame.strokes : 0}</strong>
-        <small class="summary-meta">${stats.bestGame ? (stats.bestGame.game.courses?.name || 'Sin campo') : 'Sin datos'}</small>
       </div>
       <div class="summary-card">
         <span class="summary-label">Última partida</span>
@@ -238,6 +239,11 @@ const DashboardView = {
     if (!container) return;
 
     this.renderSummary();
+
+    const actionCard = document.querySelector('.summary-card-action');
+    if (actionCard) {
+      actionCard.addEventListener('click', () => GolfApp.navigate('game'));
+    }
     
     // Si no hay partidas en absoluto
     if (this.allGames.length === 0) {
